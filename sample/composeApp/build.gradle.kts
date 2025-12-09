@@ -1,0 +1,61 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
+plugins {
+    alias(libs.plugins.multiplatform)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.android.application)
+}
+
+kotlin {
+    jvmToolchain(17)
+
+    androidTarget()
+    jvm()
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.ui)
+            implementation(compose.foundation)
+            implementation(compose.material)
+            implementation(libs.kotlinx.io.core)
+            implementation(project(":oss-sdk"))
+        }
+
+        androidMain.dependencies {
+            implementation(libs.androidx.activityCompose)
+        }
+
+        jvmMain.dependencies {
+            implementation(compose.desktop.currentOs)
+        }
+
+    }
+}
+
+android {
+    namespace = "sample.app"
+    compileSdk = 36
+
+    defaultConfig {
+        minSdk = 26
+        targetSdk = 36
+
+        applicationId = "sample.app.androidApp"
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "sample"
+            packageVersion = "1.0.0"
+        }
+    }
+}
