@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -171,7 +172,22 @@ fun App() {
                             .fillMaxWidth()
                             .height(30.dp)
                             .border(BorderStroke(1.dp, Color.Gray), RoundedCornerShape(5.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (accessKeyId.isEmpty()) {
+                                    Text(
+                                        text = "Test only. Do not embed the credentials in your applications.",
+                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                                        fontSize = 12.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
                     )
                 }
                 Row(
@@ -189,7 +205,22 @@ fun App() {
                             .fillMaxWidth()
                             .height(30.dp)
                             .border(BorderStroke(1.dp, Color.Gray), RoundedCornerShape(5.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (accessKeySecret.isEmpty()) {
+                                    Text(
+                                        text = "Test only. Do not embed the credentials in your applications.",
+                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                                        fontSize = 12.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
                     )
                 }
                 Row(
@@ -207,7 +238,22 @@ fun App() {
                             .fillMaxWidth()
                             .height(30.dp)
                             .border(BorderStroke(1.dp, Color.Gray), RoundedCornerShape(5.dp))
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        decorationBox = { innerTextField ->
+                            Box(
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (securityToken == null || securityToken?.isEmpty() == true) {
+                                    Text(
+                                        text = "Test only. Do not embed the credentials in your applications.",
+                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.3f),
+                                        fontSize = 12.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        }
                     )
                 }
                 Row(
