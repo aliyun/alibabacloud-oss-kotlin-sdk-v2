@@ -3,7 +3,7 @@ package com.aliyun.kotlin.sdk.service.oss2.serialization.xml
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class XmlEncoderTest {
@@ -38,7 +38,7 @@ class XmlEncoderTest {
             listOf("hi1", "hi2")
         )
 
-        val actual = Xml.Default.encodeToString(box)
+        val actual = XmlSerializer.Default.encodeToString(box)
         assertEquals(xml, actual)
     }
 
@@ -138,7 +138,86 @@ class XmlEncoderTest {
                 listOf("1", "2")
             )
         )
-        val actual = Xml.Default.encodeToString(result)
+        val actual = XmlSerializer.Default.encodeToString(result)
+        assertEquals(xml, actual)
+    }
+
+    @Test
+    fun basicXmlWithNullableElement() {
+        @Serializable
+        @SerialName("SubBox")
+        data class SubBox(
+            @XmlElement("Message") val message: String?
+        )
+
+        @Serializable
+        @SerialName("Box")
+        @XmlRoot
+        data class Box(
+            @XmlElement("SubBox") val subBox: SubBox?,
+            @XmlElement("Message") val message: List<String>?
+        )
+
+        var xml = """
+            <Box>
+            <SubBox>
+            <Message>hi</Message>
+            </SubBox>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        var box = Box(
+            SubBox("hi"),
+            listOf("hi1", "hi2")
+        )
+
+        var actual = XmlSerializer.Default.encodeToString(box)
+        assertEquals(xml, actual)
+
+        xml = """
+            <Box>
+            <SubBox>
+            </SubBox>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        box = Box(
+            SubBox(null),
+            listOf("hi1", "hi2")
+        )
+
+        actual = XmlSerializer.Default.encodeToString(box)
+        assertEquals(xml, actual)
+
+        xml = """
+            <Box>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        box = Box(
+            null,
+            listOf("hi1", "hi2")
+        )
+
+        actual = XmlSerializer.Default.encodeToString(box)
+        assertEquals(xml, actual)
+
+        xml = """
+            <Box>
+            <SubBox>
+            <Message>hi</Message>
+            </SubBox>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        box = Box(
+            SubBox("hi"),
+            null
+        )
+
+        actual = XmlSerializer.Default.encodeToString(box)
         assertEquals(xml, actual)
     }
 }

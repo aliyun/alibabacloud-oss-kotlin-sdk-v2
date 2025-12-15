@@ -95,12 +95,23 @@ internal abstract class StreamingXmlEncoder(
         serializer: SerializationStrategy<T>,
         value: T?
     ) {
-        TODO("Not yet implemented")
+        value?.let {
+            when (it) {
+                is Boolean -> encodeBooleanElement(descriptor, index, it)
+                is Byte -> encodeByteElement(descriptor, index, it)
+                is Short -> encodeShortElement(descriptor, index, it)
+                is Char -> encodeCharElement(descriptor, index, it)
+                is Int -> encodeIntElement(descriptor, index, it)
+                is Long -> encodeLongElement(descriptor, index, it)
+                is Float -> encodeFloatElement(descriptor, index, it)
+                is Double -> encodeDoubleElement(descriptor, index, it)
+                else -> encodeSerializableElement(descriptor, index, serializer, it)
+            }
+        }
     }
 
     @ExperimentalSerializationApi
     override fun encodeNull() {
-        TODO("Not yet implemented")
     }
 
     override fun encodeBoolean(value: Boolean) {
@@ -153,7 +164,7 @@ internal class ClassStreamingXmlEncoder(
 ) : StreamingXmlEncoder(serializersModule) {
 
     var node: XmlNode? = rootNode
-    val stack: ListStack<XmlNode> = mutableListOf<XmlNode>()
+    var stack: ListStack<XmlNode> = mutableListOf<XmlNode>()
 
     override fun <T> encodeSerializableElement(
         descriptor: SerialDescriptor,
@@ -161,6 +172,7 @@ internal class ClassStreamingXmlEncoder(
         serializer: SerializationStrategy<T>,
         value: T
     ) {
+        stack = mutableListOf<XmlNode>()
         val annotations = descriptor.getElementAnnotations(index).filterIsInstance<XmlElement>()
         annotations.firstOrNull()?.name?.let {
             when (value) {

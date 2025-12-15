@@ -8,9 +8,9 @@ import kotlinx.serialization.StringFormat
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 
-public sealed class Xml(override val serializersModule: SerializersModule) : StringFormat {
+public sealed class XmlSerializer(override val serializersModule: SerializersModule) : StringFormat {
 
-    public companion object Default : Xml(EmptySerializersModule())
+    public companion object Default : XmlSerializer(EmptySerializersModule())
 
     override fun <T> encodeToString(serializer: SerializationStrategy<T>, value: T): String {
         val encoder = ClassStreamingXmlEncoder(null, serializersModule)

@@ -93,7 +93,7 @@ internal abstract class XmlElementDecoder(
         deserializer: DeserializationStrategy<T?>,
         previousValue: T?
     ): T? {
-        TODO("Not yet implemented")
+        return decodeSerializableElement(descriptor, index, deserializer, previousValue)
     }
 
     override fun decodeCollectionSize(descriptor: SerialDescriptor): Int {
