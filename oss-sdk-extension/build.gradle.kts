@@ -43,6 +43,7 @@ kotlin {
             implementation(project(":oss-sdk"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.serialization.core)
         }
 
         commonTest.dependencies {
