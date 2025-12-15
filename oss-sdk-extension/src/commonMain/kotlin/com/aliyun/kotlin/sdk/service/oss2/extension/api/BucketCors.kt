@@ -6,7 +6,15 @@ import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RES
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.CORSConfiguration
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.DeleteBucketCorsRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.DeleteBucketCorsResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketCorsRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketCorsResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketCorsRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketCorsResult
+import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
+import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.putBucketCors(
@@ -14,6 +22,7 @@ public suspend fun OSSClient.putBucketCors(
     options: OperationOptions? = null
 ): PutBucketCorsResult {
     requireNotNull(request.bucket) { "request.bucket is required" }
+    val corsConfiguration = requireNotNull(request.corsConfiguration) { "request.corsConfiguration is required" }
 
     val input = OperationInput {
         opName = "PutBucketCors"
@@ -28,7 +37,7 @@ public suspend fun OSSClient.putBucketCors(
         }
         bucket = request.bucket
         // body
-        // body = toXmlCORSConfiguration(request.cORSConfiguration)
+        body = ByteStream.fromBytes(SerdeUtils.serializeXmlBody(corsConfiguration))
     }
 
     // opMetadata
@@ -75,12 +84,13 @@ public suspend fun OSSClient.getBucketCors(
     }
 
     val output = this.invokeOperation(input, options)
+    val body = output.body?.toByteArray()
 
     return GetBucketCorsResult {
         headers = output.headers
         status = output.status
         statusCode = output.statusCode
-        // innerBody = fromXmlCORSConfiguration(output.body)
+        innerBody = SerdeUtils.deserializeXmlBody<CORSConfiguration>(body)
     }
 }
 
