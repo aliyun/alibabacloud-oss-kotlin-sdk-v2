@@ -3,8 +3,11 @@ package com.aliyun.kotlin.sdk.service.oss2.serialization.xml
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class XmlDecoderTest {
 
@@ -67,7 +70,7 @@ class XmlDecoderTest {
             </Greeting>
         """.trimIndent()
 
-        val actual = Xml.Default.decodeFromString<Greeting>(xml)
+        val actual = XmlSerializer.Default.decodeFromString<Greeting>(xml)
         assertEquals(
             Greeting(
                 message = listOf("Hi1", "Hi2"),
@@ -89,7 +92,7 @@ class XmlDecoderTest {
             <Message>Hi1</Message>
             </Greeting>
         """.trimIndent()
-        val actual = Xml.Default.decodeFromString<Greeting>(xml)
+        val actual = XmlSerializer.Default.decodeFromString<Greeting>(xml)
         assertEquals(
             Greeting(
                 message = listOf("Hi1"),
@@ -110,7 +113,7 @@ class XmlDecoderTest {
             <Message>Hi1</Message>
             </Greeting>
         """.trimIndent()
-        val actual = Xml.Default.decodeFromString<Greeting>(xml)
+        val actual = XmlSerializer.Default.decodeFromString<Greeting>(xml)
         assertEquals(
             Greeting(
                 message = listOf("Hi1"),
@@ -131,7 +134,7 @@ class XmlDecoderTest {
             <Message>Hi1</Message>
             </Greeting>
         """.trimIndent()
-        val actual = Xml.Default.decodeFromString<Greeting>(xml)
+        val actual = XmlSerializer.Default.decodeFromString<Greeting>(xml)
         assertEquals(
             Greeting(
                 message = listOf("Hi1"),
@@ -176,7 +179,7 @@ class XmlDecoderTest {
             </OptionalFields>
             </ListBucketResult>
         """.trimIndent()
-        val actual = Xml.Default.decodeFromString<ListBucketResult>(xml)
+        val actual = XmlSerializer.Default.decodeFromString<ListBucketResult>(xml)
         assertEquals(
             ListBucketResult(
                 name = "examplebucket",
@@ -217,5 +220,75 @@ class XmlDecoderTest {
             ),
             actual
         )
+    }
+
+    @Test
+    fun basicXmlWithNullableElement() {
+        @Serializable
+        @SerialName("SubBox")
+        data class SubBox(
+            @XmlElement("Message") val message: String? = null
+        )
+
+        @Serializable
+        @SerialName("Box")
+        @XmlRoot
+        data class Box(
+            @XmlElement("SubBox") val subBox: SubBox? = null,
+            @XmlElement("Message") val message: List<String>? = null
+        )
+
+        var xml = """
+            <Box>
+            <SubBox>
+            <Message>hi</Message>
+            </SubBox>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        var actual = XmlSerializer.Default.decodeFromString<Box>(xml)
+        assertEquals("hi", actual.subBox?.message)
+        assertEquals(2, actual.message?.size)
+        assertEquals("hi1", actual.message?.get(0))
+        assertEquals("hi2", actual.message?.get(1))
+
+        xml = """
+            <Box>
+            <SubBox>
+            </SubBox>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        actual = XmlSerializer.Default.decodeFromString<Box>(xml)
+        assertNotNull(actual.subBox)
+        assertNull(actual.subBox.message)
+        assertEquals(2, actual.message?.size)
+        assertEquals("hi1", actual.message?.get(0))
+        assertEquals("hi2", actual.message?.get(1))
+
+
+        xml = """
+            <Box>
+            <Message>hi1</Message>
+            <Message>hi2</Message>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        actual = XmlSerializer.Default.decodeFromString<Box>(xml)
+        assertNull(actual.subBox)
+        assertEquals(2, actual.message?.size)
+        assertEquals("hi1", actual.message?.get(0))
+        assertEquals("hi2", actual.message?.get(1))
+
+        xml = """
+            <Box>
+            <SubBox>
+            <Message>hi</Message>
+            </SubBox>
+            </Box>
+        """.trimIndent().replace("\n", "")
+        actual = XmlSerializer.Default.decodeFromString<Box>(xml)
+        assertEquals("hi", actual.subBox?.message)
     }
 }
