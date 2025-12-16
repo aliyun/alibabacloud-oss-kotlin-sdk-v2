@@ -16,6 +16,7 @@ import com.aliyun.kotlin.sdk.service.oss2.models.ListPartsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.Part
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
+import com.aliyun.kotlin.sdk.service.oss2.models.UploadPart
 import com.aliyun.kotlin.sdk.service.oss2.models.UploadPartCopyRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.UploadPartRequest
 import com.aliyun.kotlin.sdk.service.oss2.paginator.PaginatorOptions
@@ -278,7 +279,7 @@ class ObjectMultipartTest: TestBase() {
             this.key = key
             uploadId = result.uploadId
             completeMultipartUpload = CompleteMultipartUpload {
-                parts = listOf(Part{
+                parts = listOf(UploadPart {
                     partNumber = 1
                     eTag = uploadResult.eTag
                 })

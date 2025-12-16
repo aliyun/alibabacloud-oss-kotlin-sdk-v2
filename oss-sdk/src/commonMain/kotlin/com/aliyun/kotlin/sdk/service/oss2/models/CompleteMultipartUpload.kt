@@ -8,7 +8,7 @@ public class CompleteMultipartUpload(builder: Builder) {
     /**
      * The container that stores the uploaded parts.
      */
-    public val parts: List<Part>? = builder.parts
+    public val parts: List<UploadPart>? = builder.parts
 
     public constructor() : this(Builder())
 
@@ -21,7 +21,7 @@ public class CompleteMultipartUpload(builder: Builder) {
         /**
          * The container that stores the uploaded parts.
          */
-        public var parts: List<Part>? = null
+        public var parts: List<UploadPart>? = null
 
         public fun build(): CompleteMultipartUpload {
             return CompleteMultipartUpload(this)
