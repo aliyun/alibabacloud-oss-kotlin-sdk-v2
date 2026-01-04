@@ -2,7 +2,7 @@ package com.aliyun.kotlin.sdk.service.oss2.transform
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.DeserializationException
 import com.aliyun.kotlin.sdk.service.oss2.models.CompleteMultipartUpload
-import com.aliyun.kotlin.sdk.service.oss2.models.Part
+import com.aliyun.kotlin.sdk.service.oss2.models.UploadPart
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -78,15 +78,15 @@ class SerdeObjectMultipartTest {
         """.trimIndent().replace("\n", "")
         completeMultipartUpload = CompleteMultipartUpload.Builder().apply {
             parts = listOf(
-                Part.Builder().apply {
+                UploadPart.Builder().apply {
                     eTag = "\"3349DC700140D7F86A0784842780****\""
                     partNumber = 1
                 }.build(),
-                Part.Builder().apply {
+                UploadPart.Builder().apply {
                     eTag = "\"8EFDA8BE206636A695359836FE0A****\""
                     partNumber = 5
                 }.build(),
-                Part.Builder().apply {
+                UploadPart.Builder().apply {
                     eTag = "\"8C315065167132444177411FDA14****\""
                     partNumber = 8
                 }.build()
