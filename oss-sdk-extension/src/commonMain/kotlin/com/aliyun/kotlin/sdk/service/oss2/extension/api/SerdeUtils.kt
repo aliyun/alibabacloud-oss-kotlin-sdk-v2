@@ -58,3 +58,5 @@ internal object SerdeUtils {
         return xml.toByteArray()
     }
 }
+
+internal fun ByteArray.toByteStream(): ByteStream = ByteStream.fromBytes(this)
