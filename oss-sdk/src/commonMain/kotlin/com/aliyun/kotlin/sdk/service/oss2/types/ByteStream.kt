@@ -120,3 +120,6 @@ private fun RawSource.toFlow(bufferSize: Long): Flow<ByteArray> {
         }
     }
 }
+
+public fun ByteArray.toByteStream(): ByteStream = ByteStream.fromBytes(this)
+public fun String.toByteStream(): ByteStream = ByteStream.fromString(this)
