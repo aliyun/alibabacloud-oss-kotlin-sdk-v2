@@ -4,7 +4,12 @@ package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.ClientConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
+import com.aliyun.kotlin.sdk.service.oss2.credentials.Credentials
+import com.aliyun.kotlin.sdk.service.oss2.credentials.CredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.credentials.StaticCredentialsProvider
+import com.aliyun.kotlin.sdk.service.oss2.exceptions.CredentialsException
+import com.aliyun.kotlin.sdk.service.oss2.hash.hmacSha1
+import com.aliyun.kotlin.sdk.service.oss2.hash.md5
 import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListBucketsRequest
@@ -17,14 +22,27 @@ import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectVersionsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
+import io.ktor.http.encodeURLParameter
+import io.ktor.util.encodeBase64
+import kotlinx.datetime.format
+import kotlinx.datetime.format.DateTimeComponents.Companion.Format
+import kotlinx.datetime.format.char
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
 open class TestBase {
@@ -175,4 +193,90 @@ internal fun ByteStream.Companion.fromSource(source: RawSource, contentLength: L
     override fun readFrom(): RawSource = source
 }
 
+internal class RamRoleArnCredentialProvider(
+    val accessKeyId: String,
+    val accessKeySecret: String,
+    val roleArn: String,
+    val regionId: String,
+    val policy: String? = null,
+    val roleSessionName: String = "defaultSessionName",
+    val durationSeconds: Int = 3600
+): CredentialsProvider {
 
+    @OptIn(ExperimentalUuidApi::class)
+    override suspend fun getCredentials(): Credentials {
+        val params: MutableMap<String, String> = mutableMapOf(
+            "Action" to "AssumeRole",
+            "Format" to "JSON",
+            "Version" to "2015-04-01",
+            "DurationSeconds" to "$durationSeconds",
+            "RoleArn" to roleArn,
+            "AccessKeyId" to accessKeyId,
+            "RegionId" to regionId,
+            "RoleSessionName" to roleSessionName,
+            "SignatureVersion" to "1.0",
+            "SignatureMethod" to "HMAC-SHA1",
+            "Timestamp" to Clock.System.now().format(Format {
+                year()
+                char('-')
+                monthNumber()
+                char('-')
+                day()
+                char('T')
+                hour()
+                char(':')
+                minute()
+                char(':')
+                second()
+                chars("Z")
+            }),
+            "SignatureNonce" to "${Clock.System.now().epochSeconds}${
+                Uuid.random().toHexString()
+            }".toByteArray().md5().joinToString { String.format("%02x", it) },
+        )
+        policy?.let {
+            params["Policy"] = it
+        }
+
+        val stringToSign = buildString {
+            append("GET&%2F&")
+            append(params.mapNotNull {
+                "${it.key}=${it.value.encodeURLParameter()}".encodeURLParameter()
+            }.sorted().joinToString("%26"))
+        }
+
+        val signature = stringToSign.toByteArray().hmacSha1("$accessKeySecret&".toByteArray())
+        params["Signature"] = signature.encodeBase64()
+
+        val url = buildString {
+            append("https://sts.aliyuncs.com?")
+            append(params.mapNotNull {
+                "${it.key.encodeURLParameter()}=${it.value.encodeURLParameter()}"
+            }.joinToString("&"))
+        }
+        val response = OkHttpClient.Builder()
+            .build()
+            .newCall(
+                Request.Builder()
+                    .url(url)
+                    .get()
+                    .header("host", "sts.aliyuncs.com")
+                    .build()
+            )
+            .execute()
+        val result = Json.decodeFromString<Map<String, JsonElement>>(response.body.bytes().decodeToString())
+        (result["Credentials"] as? JsonObject)?.let {
+            val accessKey = it["AccessKeyId"]?.jsonPrimitive?.content
+            val secretKey = it["AccessKeySecret"]?.jsonPrimitive?.content
+            val expirationTime = it["Expiration"]?.jsonPrimitive?.content
+            val token = it["SecurityToken"]?.jsonPrimitive?.content
+            if (accessKey != null && secretKey != null) {
+                return Credentials(accessKey, secretKey, token, expirationTime)
+            } else {
+                throw CredentialsException()
+            }
+        }
+        throw CredentialsException()
+    }
+
+}

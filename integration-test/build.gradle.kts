@@ -16,6 +16,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.kotlinx.serialization.json)
             implementation(project(":oss-sdk"))
             implementation(project(":oss-sdk-extension"))
             implementation(kotlin("test"))
