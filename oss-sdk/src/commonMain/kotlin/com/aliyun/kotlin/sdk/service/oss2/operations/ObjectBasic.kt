@@ -378,7 +378,7 @@ internal object ObjectBasic {
         }
 
         // opMetadata
-        input.opMetadata[SUB_RESOURCE] = listOf("restore")
+        input.opMetadata[SUB_RESOURCE] = listOf("delete")
 
         serializeInput(request, input) {
             addContentMd5(this)
