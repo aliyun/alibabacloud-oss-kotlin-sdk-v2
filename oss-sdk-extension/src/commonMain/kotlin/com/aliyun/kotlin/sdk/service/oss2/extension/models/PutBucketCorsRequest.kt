@@ -22,7 +22,7 @@ public class PutBucketCorsRequest(builder: Builder) : RequestModel(builder) {
             Builder().apply(builder).build()
     }
 
-    public class Builder : RequestModel.Builder() {
+    public class Builder() : RequestModel.Builder() {
 
         /**
          * The name of the bucket.
