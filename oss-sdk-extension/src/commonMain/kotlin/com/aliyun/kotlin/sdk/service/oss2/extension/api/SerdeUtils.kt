@@ -22,8 +22,7 @@ internal object SerdeUtils {
         input.headers.putAll(request.headers)
 
         // parameters
-        input.parameters.putAll(request.parameters).apply {
-        }
+        input.parameters.putAll(request.parameters)
 
         // custom serializer
         input.apply {

@@ -3,7 +3,6 @@ package com.aliyun.kotlin.sdk.service.oss2.serialization.xml
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -267,8 +266,6 @@ class XmlDecoderTest {
         assertEquals(2, actual.message?.size)
         assertEquals("hi1", actual.message?.get(0))
         assertEquals("hi2", actual.message?.get(1))
-
-
         xml = """
             <Box>
             <Message>hi1</Message>

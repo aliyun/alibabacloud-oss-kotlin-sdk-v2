@@ -43,8 +43,8 @@ class XmlStreamReaderTest {
 
     @Test
     fun itDeserializesXmlTextWithAmpersands() {
-        val payload = """             
-            <value>{&quot;Version&quot;:&quot;2008-10-17&quot;,&quot;Id&quot;:&quot;__default_policy_ID&quot;,&quot;Statement&quot;:[{&quot;Sid&quot;:&quot;__default_statement_ID&quot;,&quot;Effect&quot;:&quot;Allow&quot;,&quot;Principal&quot;:{&quot;AWS&quot;:&quot;*&quot;},&quot;Action&quot;:[&quot;SNS:GetTopicAttributes&quot;,&quot;SNS:SetTopicAttributes&quot;,&quot;SNS:AddPermission&quot;,&quot;SNS:RemovePermission&quot;,&quot;SNS:DeleteTopic&quot;,&quot;SNS:Subscribe&quot;,&quot;SNS:ListSubscriptionsByTopic&quot;,&quot;SNS:Publish&quot;,&quot;SNS:Receive&quot;],&quot;Resource&quot;:&quot;arn:aws:sns:us-west-2:406669096152:kg-test&quot;,&quot;Condition&quot;:{&quot;StringEquals&quot;:{&quot;AWS:SourceOwner&quot;:&quot;406669096152&quot;}}}]}</value>            
+        val payload = """
+            <value>{&quot;Version&quot;:&quot;2008-10-17&quot;,&quot;Id&quot;:&quot;__default_policy_ID&quot;,&quot;Statement&quot;:[{&quot;Sid&quot;:&quot;__default_statement_ID&quot;,&quot;Effect&quot;:&quot;Allow&quot;,&quot;Principal&quot;:{&quot;AWS&quot;:&quot;*&quot;},&quot;Action&quot;:[&quot;SNS:GetTopicAttributes&quot;,&quot;SNS:SetTopicAttributes&quot;,&quot;SNS:AddPermission&quot;,&quot;SNS:RemovePermission&quot;,&quot;SNS:DeleteTopic&quot;,&quot;SNS:Subscribe&quot;,&quot;SNS:ListSubscriptionsByTopic&quot;,&quot;SNS:Publish&quot;,&quot;SNS:Receive&quot;],&quot;Resource&quot;:&quot;arn:aws:sns:us-west-2:406669096152:kg-test&quot;,&quot;Condition&quot;:{&quot;StringEquals&quot;:{&quot;AWS:SourceOwner&quot;:&quot;406669096152&quot;}}}]}</value>
         """.trimIndent().encodeToByteArray()
         val actual = xmlStreamReader(payload).allTokens()
 
@@ -97,7 +97,7 @@ class XmlStreamReaderTest {
                  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
                  ~ SPDX-License-Identifier: Apache-2.0
                  -->
-                
+
                <payload>
                     <x value="1" />
                     <y value="2" />
@@ -127,7 +127,7 @@ class XmlStreamReaderTest {
     fun kitchenSink() {
         val payload = """
         <root>
-          <num>1</num>    
+          <num>1</num>
           <str>string</str>
           <list>
             <value>1</value>
@@ -663,7 +663,7 @@ class XmlStreamReaderTest {
                 <d>  Leading spaces</d>
                 <e>Trailing spaces  </e>
                 <f>  Leading/trailing spaces  </f>
-                <g> Leading text <h/> </g> 
+                <g> Leading text <h/> </g>
                 <i> <j/> Trailing text </i>
                 <k>   </k> <!-- Blank space only! -->
                 <l> <!-- Blank space only! -->  </l>

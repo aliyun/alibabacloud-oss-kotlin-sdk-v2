@@ -7,6 +7,7 @@ import com.aliyun.kotlin.sdk.service.oss2.exceptions.InconsistentException
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectRequest
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -64,9 +65,11 @@ class ClientPlatformMockTest {
                 bucket = "bucket"
                 key = "key"
             }
+            val testDir = Path("$SystemTemporaryDirectory/kotlin-sdk-test")
+            SystemFileSystem.createDirectories(testDir)
             val exception =
                 assertFailsWith<InconsistentException> {
-                    client.getObjectToFile(request, Path("$SystemTemporaryDirectory/kotlin-sdk-test/file"))
+                    client.getObjectToFile(request, Path("$testDir/file"))
                 }
             assertEquals(hashCrc64ecma, exception.clientCrc)
             assertEquals("invalid", exception.serverCrc)
