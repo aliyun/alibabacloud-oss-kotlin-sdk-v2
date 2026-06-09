@@ -9,6 +9,9 @@ import kotlinx.io.IOException
 import okhttp3.ResponseBody
 import okhttp3.internal.http.HttpMethod
 import java.net.ConnectException
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.URI
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 import kotlin.coroutines.cancellation.CancellationException
@@ -30,6 +33,14 @@ internal class OkHttpTransportImpl(
             .readTimeout(Defaults.READWRITE_TIMEOUT.toJavaDuration())
 
         config.proxy?.let { url ->
+            val uri = URI.create(url)
+            require(uri.host != null) { "invalid proxy url: $url" }
+            val port = when {
+                uri.port != -1 -> uri.port
+                uri.scheme?.lowercase() == "https" -> 443
+                else -> 80
+            }
+            builder = builder.proxy(Proxy(Proxy.Type.HTTP, InetSocketAddress(uri.host, port)))
         }
 
         config.connectTimeout?.let {
