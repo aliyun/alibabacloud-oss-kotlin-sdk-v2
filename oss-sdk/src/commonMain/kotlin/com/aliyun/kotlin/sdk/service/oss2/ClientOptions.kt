@@ -76,7 +76,7 @@ public class ClientOptions(builder: Builder) {
         this.credentialsProvider = requireNotNull(builder.credentialsProvider) { "credentialsProvider is null" }
         this.httpClient = requireNotNull(builder.httpClient) { "httpClient is null" }
         this.additionalHeaders = builder.additionalHeaders ?: listOf()
-        this.featureFlags = builder.featureFlags ?: Defaults.FEATURE_FLAGS
+        this.featureFlags = builder.featureFlags?.copy() ?: Defaults.FEATURE_FLAGS.copy()
     }
 
     public inline fun copy(

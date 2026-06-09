@@ -34,5 +34,5 @@ internal object Defaults {
         FeatureFlagsType.ENABLE_CRC64_CHECK_DOWNLOAD,
         FeatureFlagsType.AUTO_DETECT_MIMETYPE,
         FeatureFlagsType.CORRECT_CLOCK_SKEW
-    )!!
+    )
 }
