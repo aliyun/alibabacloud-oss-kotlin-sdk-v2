@@ -267,8 +267,6 @@ class XmlDecoderTest {
         assertEquals(2, actual.message?.size)
         assertEquals("hi1", actual.message?.get(0))
         assertEquals("hi2", actual.message?.get(1))
-
-
         xml = """
             <Box>
             <Message>hi1</Message>
