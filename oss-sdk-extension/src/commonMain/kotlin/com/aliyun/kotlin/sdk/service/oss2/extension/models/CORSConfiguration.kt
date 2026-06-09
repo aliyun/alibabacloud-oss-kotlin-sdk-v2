@@ -12,12 +12,12 @@ import kotlinx.serialization.Serializable
 @SerialName("CORSConfiguration")
 @XmlRoot
 public class CORSConfiguration(
-    
+
     /**
      * The container that stores CORS rules. Up to 10 rules can be configured for a bucket.
      */
     @XmlElement("CORSRule") public var corsRules: List<CORSRule>? = null,
- 
+
     /**
      * Indicates whether the Vary: Origin header was returned.
      * Default value: false.

@@ -422,7 +422,7 @@ class SerdeBucketBasicTest {
             </Owner>
             <AccessControlList>
             <Grant>private</Grant>
-            </AccessControlList>  
+            </AccessControlList>
             <Comment>test</Comment>
             <BucketPolicy>
             <LogBucket>examplebucket</LogBucket>

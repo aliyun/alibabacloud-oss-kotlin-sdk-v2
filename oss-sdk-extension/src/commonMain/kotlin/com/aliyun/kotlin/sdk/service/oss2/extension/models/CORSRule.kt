@@ -10,23 +10,23 @@ import kotlinx.serialization.Serializable
 @Serializable
 @SerialName("CORSRule")
 public data class CORSRule(
-    
+
     /**
      * The origins from which cross-origin requests are allowed.
      */
     @XmlElement("AllowedOrigin") public var allowedOrigins: List<String>? = null,
-    
+
     /**
      * The methods that you can use in cross-origin requests.
      */
     @XmlElement("AllowedMethod") public var allowedMethods: List<String>? = null,
-    
+
     /**
      * Specifies whether the headers specified by Access-Control-Request-Headers in the OPTIONS preflight request are allowed. Each header specified by Access-Control-Request-Headers must match the value of an AllowedHeader element.
      * You can use only one asterisk (\*) as the wildcard character.
      */
     @XmlElement("AllowedHeader") public var allowedHeaders: List<String>? = null,
-    
+
     /**
      * The response headers for allowed access requests from applications, such as an XMLHttpRequest object in JavaScript.
      * The asterisk (\*) wildcard character is not supported.
