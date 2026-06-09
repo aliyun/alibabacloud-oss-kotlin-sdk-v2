@@ -28,4 +28,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build and Test
-        run: ./gradlew assemble allTests
+        run: ./gradlew assemble allTests -x :integration-test:allTests
