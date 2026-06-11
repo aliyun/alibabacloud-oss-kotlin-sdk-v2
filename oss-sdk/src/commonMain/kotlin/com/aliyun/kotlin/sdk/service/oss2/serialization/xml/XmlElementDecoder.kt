@@ -148,6 +148,20 @@ internal open class XmlClassDecoder(
         return childrenNode.value.first().text ?: throw IllegalArgumentException("Invalid string value")
     }
 
+    @ExperimentalSerializationApi
+    override fun <T : Any> decodeNullableSerializableElement(
+        descriptor: SerialDescriptor,
+        index: Int,
+        deserializer: DeserializationStrategy<T?>,
+        previousValue: T?
+    ): T? {
+        val node = childrenNode.value.first()
+        if (node.text == null && node.children.isEmpty()) {
+            return null
+        }
+        return decodeSerializableElement(descriptor, index, deserializer, previousValue)
+    }
+
     override fun <T> decodeSerializableElement(
         descriptor: SerialDescriptor,
         index: Int,

@@ -71,7 +71,7 @@ internal class StreamingXmlClassDecoder(
 ) : StreamingXmlDecoder(serializersModule) {
 
     override fun decodeString(): String {
-        return node.text ?: throw IllegalArgumentException("")
+        return node.text ?: throw IllegalArgumentException("Xml value is null")
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {
