@@ -105,6 +105,7 @@ internal abstract class StreamingXmlEncoder(
                 is Long -> encodeLongElement(descriptor, index, it)
                 is Float -> encodeFloatElement(descriptor, index, it)
                 is Double -> encodeDoubleElement(descriptor, index, it)
+                is String -> encodeStringElement(descriptor, index, it)
                 else -> encodeSerializableElement(descriptor, index, serializer, it)
             }
         }
@@ -191,6 +192,7 @@ internal class ClassStreamingXmlEncoder(
                 }
             }
             encodeSerializableValue(serializer, value)
+            this.node = rootNode
         }
     }
 
