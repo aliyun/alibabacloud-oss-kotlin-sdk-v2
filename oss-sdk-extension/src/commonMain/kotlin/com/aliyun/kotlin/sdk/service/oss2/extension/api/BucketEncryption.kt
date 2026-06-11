@@ -2,7 +2,6 @@ package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
@@ -13,7 +12,6 @@ import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
 
 public suspend fun OSSClient.putBucketEncryption(request: PutBucketEncryptionRequest, options: OperationOptions? = null): PutBucketEncryptionResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
     requireNotNull(request.serverSideEncryptionRule) { "request.serverSideEncryptionRule is required" }
 
@@ -46,7 +44,6 @@ public suspend fun OSSClient.putBucketEncryption(request: PutBucketEncryptionReq
 }
 
 public suspend fun OSSClient.getBucketEncryption(request: GetBucketEncryptionRequest, options: OperationOptions? = null): GetBucketEncryptionResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
@@ -79,7 +76,6 @@ public suspend fun OSSClient.getBucketEncryption(request: GetBucketEncryptionReq
 }
 
 public suspend fun OSSClient.deleteBucketEncryption(request: DeleteBucketEncryptionRequest, options: OperationOptions? = null): DeleteBucketEncryptionResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
