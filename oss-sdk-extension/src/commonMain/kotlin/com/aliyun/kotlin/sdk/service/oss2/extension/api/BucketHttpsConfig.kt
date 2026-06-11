@@ -1,19 +1,21 @@
 package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
-import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
+import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketHttpsConfigRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketHttpsConfigResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.HttpsConfiguration
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketHttpsConfigRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketHttpsConfigResult
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
+import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.getBucketHttpsConfig(request: GetBucketHttpsConfigRequest, options: OperationOptions? = null): GetBucketHttpsConfigResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
@@ -46,7 +48,6 @@ public suspend fun OSSClient.getBucketHttpsConfig(request: GetBucketHttpsConfigR
 }
 
 public suspend fun OSSClient.putBucketHttpsConfig(request: PutBucketHttpsConfigRequest, options: OperationOptions? = null): PutBucketHttpsConfigResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
     requireNotNull(request.httpsConfiguration) { "request.httpsConfiguration is required" }
 

@@ -1,19 +1,21 @@
 package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
-import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
+import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketRequestPaymentRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketRequestPaymentResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketRequestPaymentRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketRequestPaymentResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.RequestPaymentConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
+import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.putBucketRequestPayment(request: PutBucketRequestPaymentRequest, options: OperationOptions? = null): PutBucketRequestPaymentResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
     requireNotNull(request.requestPaymentConfiguration) { "request.requestPaymentConfiguration is required" }
 
@@ -46,7 +48,6 @@ public suspend fun OSSClient.putBucketRequestPayment(request: PutBucketRequestPa
 }
 
 public suspend fun OSSClient.getBucketRequestPayment(request: GetBucketRequestPaymentRequest, options: OperationOptions? = null): GetBucketRequestPaymentResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {

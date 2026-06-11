@@ -1,19 +1,21 @@
 package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
-import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
+import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.ArchiveDirectReadConfiguration
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketArchiveDirectReadRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketArchiveDirectReadResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketArchiveDirectReadRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketArchiveDirectReadResult
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
+import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.getBucketArchiveDirectRead(request: GetBucketArchiveDirectReadRequest, options: OperationOptions? = null): GetBucketArchiveDirectReadResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
@@ -46,7 +48,6 @@ public suspend fun OSSClient.getBucketArchiveDirectRead(request: GetBucketArchiv
 }
 
 public suspend fun OSSClient.putBucketArchiveDirectRead(request: PutBucketArchiveDirectReadRequest, options: OperationOptions? = null): PutBucketArchiveDirectReadResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
     requireNotNull(request.archiveDirectReadConfiguration) { "request.archiveDirectReadConfiguration is required" }
 
