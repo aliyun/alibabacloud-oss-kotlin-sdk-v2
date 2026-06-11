@@ -1,19 +1,21 @@
 package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
-import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
+import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.BucketResourceGroupConfiguration
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketResourceGroupRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketResourceGroupResult
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketResourceGroupRequest
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketResourceGroupResult
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
+import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.getBucketResourceGroup(request: GetBucketResourceGroupRequest, options: OperationOptions? = null): GetBucketResourceGroupResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
@@ -46,7 +48,6 @@ public suspend fun OSSClient.getBucketResourceGroup(request: GetBucketResourceGr
 }
 
 public suspend fun OSSClient.putBucketResourceGroup(request: PutBucketResourceGroupRequest, options: OperationOptions? = null): PutBucketResourceGroupResult {
-
     requireNotNull(request.bucket) { "request.bucket is required" }
     requireNotNull(request.bucketResourceGroupConfiguration) { "request.bucketResourceGroupConfiguration is required" }
 
