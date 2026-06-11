@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class XmlDecoderTest {
@@ -237,6 +236,13 @@ class XmlDecoderTest {
             @XmlElement("Message") val message: List<String>? = null
         )
 
+        @Serializable
+        @SerialName("StringBox")
+        data class StringBox(
+            @XmlElement("String1") val string1: String? = null,
+            @XmlElement("String2") val string2: String? = null
+        )
+
         var xml = """
             <Box>
             <SubBox>
@@ -261,8 +267,8 @@ class XmlDecoderTest {
             </Box>
         """.trimIndent().replace("\n", "")
         actual = XmlSerializer.Default.decodeFromString<Box>(xml)
-        assertNotNull(actual.subBox)
-        assertNull(actual.subBox.message)
+        assertNull(actual.subBox)
+        assertNull(actual.subBox?.message)
         assertEquals(2, actual.message?.size)
         assertEquals("hi1", actual.message?.get(0))
         assertEquals("hi2", actual.message?.get(1))
@@ -287,5 +293,15 @@ class XmlDecoderTest {
         """.trimIndent().replace("\n", "")
         actual = XmlSerializer.Default.decodeFromString<Box>(xml)
         assertEquals("hi", actual.subBox?.message)
+
+        xml = """
+            <StringBox>
+            <String1>1</String1>
+            <String2></String2>
+            </StringBox>
+        """.trimIndent().replace("\n", "")
+        val stringBox = XmlSerializer.Default.decodeFromString<StringBox>(xml)
+        assertEquals("1", stringBox.string1)
+        assertEquals(null, stringBox.string2)
     }
 }
