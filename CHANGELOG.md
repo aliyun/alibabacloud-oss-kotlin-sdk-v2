@@ -1,5 +1,16 @@
 # ChangeLog - Alibaba Cloud OSS SDK for Kotlin v2
 
+## 版本号：0.2.0 日期：2026-06-29
+### 变更内容
+- Feature：Add bucket referer api
+- Feature：Add bucket encryption api
+- Feature：Add bucket request payment api
+- Feature：Add bucket archive direct read api
+- Feature：Add bucket https config api
+- Feature：Add bucket resource group api
+- Feature：Add proxy configuration
+- Update：Refactor FeatureFlagsType
+
 ## 版本号：0.1.0-dev 日期：2025-12-30
 ### 变更内容
 - Feature：Add credentials provider
