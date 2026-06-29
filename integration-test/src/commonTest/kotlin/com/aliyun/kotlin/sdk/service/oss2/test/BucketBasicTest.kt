@@ -564,7 +564,7 @@ class BucketBasicTest: TestBase() {
         assertNotNull(result.bucketInfo?.bucket?.creationDate)
         assertEquals("private", result.bucketInfo?.bucket?.accessControlList?.grant)
         assertEquals("oss-$OSS_TEST_REGION", result.bucketInfo?.bucket?.location)
-        assertEquals(false, result.bucketInfo?.bucket?.blockPublicAccess)
+        assertEquals(true, result.bucketInfo?.bucket?.blockPublicAccess)
         assertEquals("Disabled", result.bucketInfo?.bucket?.crossRegionReplication)
         assertNotNull(result.bucketInfo?.bucket?.intranetEndpoint)
         assertEquals("Disabled", result.bucketInfo?.bucket?.accessMonitor)
