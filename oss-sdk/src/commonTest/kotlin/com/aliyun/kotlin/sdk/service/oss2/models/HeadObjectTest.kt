@@ -114,7 +114,7 @@ class HeadObjectTest {
                 "x-oss-restore" to "restore",
                 "x-oss-process-status" to "processStatus",
                 "Last-Modified" to "lastModified",
-                "x‑oss‑tagging‑count" to "1",
+                "x-oss-tagging-count" to "1",
                 "x-oss-server-side-encryption-key-id" to "serverSideEncryptionKeyId",
                 "x-oss-object-type" to "Normal",
                 "ETag" to "eTag-123",
@@ -158,7 +158,7 @@ class HeadObjectTest {
         assertEquals("restore", result.headers["x-oss-restore"])
         assertEquals("processStatus", result.headers["x-oss-process-status"])
         assertEquals("lastModified", result.headers["Last-Modified"])
-        assertEquals("1", result.headers["x‑oss‑tagging‑count"])
+        assertEquals("1", result.headers["x-oss-tagging-count"])
         assertEquals("serverSideEncryptionKeyId", result.headers["x-oss-server-side-encryption-key-id"])
         assertEquals("Normal", result.headers["x-oss-object-type"])
         assertEquals("eTag-123", result.headers["ETag"])
@@ -184,7 +184,7 @@ class HeadObjectTest {
             "x-oss-restore" to "restore",
             "x-oss-process-status" to "processStatus",
             "Last-Modified" to "lastModified",
-            "x‑oss‑tagging‑count" to "1",
+            "x-oss-tagging-count" to "1",
             "x-oss-server-side-encryption-key-id" to "serverSideEncryptionKeyId",
             "x-oss-object-type" to "Normal",
             "ETag" to "eTag-123",
@@ -228,7 +228,7 @@ class HeadObjectTest {
         assertEquals("restore", result.headers["x-oss-restore"])
         assertEquals("processStatus", result.headers["x-oss-process-status"])
         assertEquals("lastModified", result.headers["Last-Modified"])
-        assertEquals("1", result.headers["x‑oss‑tagging‑count"])
+        assertEquals("1", result.headers["x-oss-tagging-count"])
         assertEquals("serverSideEncryptionKeyId", result.headers["x-oss-server-side-encryption-key-id"])
         assertEquals("Normal", result.headers["x-oss-object-type"])
         assertEquals("eTag-123", result.headers["ETag"])
