@@ -63,7 +63,7 @@ public class GetObjectResult(builder: Builder) : ResultModel(builder), AutoClose
      * The number of tags added to the object.
      */
     public val taggingCount: Long?
-        get() = headers["x‑oss‑tagging‑count"]?.toLong()
+        get() = headers["x-oss-tagging-count"]?.toLong()
 
     /**
      * The ID of the customer master key (CMK) that is managed by Key Management Service (KMS).
