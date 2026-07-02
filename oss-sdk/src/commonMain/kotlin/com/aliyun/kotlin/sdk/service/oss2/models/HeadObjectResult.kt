@@ -55,7 +55,7 @@ public class HeadObjectResult(builder: Builder) : ResultModel(builder) {
      * The number of tags added to the object.
      */
     public val taggingCount: Long?
-        get() = headers["x‑oss‑tagging‑count"]?.toLong()
+        get() = headers["x-oss-tagging-count"]?.toLong()
 
     /**
      * If the requested object is encrypted by
