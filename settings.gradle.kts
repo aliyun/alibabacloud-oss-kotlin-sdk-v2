@@ -33,4 +33,5 @@ include(":oss-sdk-extension")
 include(":sample:composeApp")
 include(":sample:cli")
 include(":integration-test")
+include(":package-verify")
 
