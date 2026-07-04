@@ -41,12 +41,12 @@ private class SignatureV4Impl : SignatureDelegate {
         product: String,
         stringToSign: String
     ): String {
-        val key = "aliyun_v4$accessKeySecret".toByteArray()
-        val dateKey = date.toByteArray().hmacSha256(key)
-        val regionKey = region.toByteArray().hmacSha256(dateKey)
-        val productKey = product.toByteArray().hmacSha256(regionKey)
-        val requestKey = "aliyun_v4_request".toByteArray().hmacSha256(productKey)
-        val signatureBytes = stringToSign.toByteArray().hmacSha256(requestKey)
+        val key = "aliyun_v4$accessKeySecret".encodeToByteArray()
+        val dateKey = date.encodeToByteArray().hmacSha256(key)
+        val regionKey = region.encodeToByteArray().hmacSha256(dateKey)
+        val productKey = product.encodeToByteArray().hmacSha256(regionKey)
+        val requestKey = "aliyun_v4_request".encodeToByteArray().hmacSha256(productKey)
+        val signatureBytes = stringToSign.encodeToByteArray().hmacSha256(requestKey)
 
         return HexUtils.encodeHex(signatureBytes)
     }

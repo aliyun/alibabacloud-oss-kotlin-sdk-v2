@@ -5,7 +5,7 @@ import com.aliyun.kotlin.sdk.service.oss2.models.Tag
 import com.aliyun.kotlin.sdk.service.oss2.models.TagSet
 import com.aliyun.kotlin.sdk.service.oss2.models.Tagging
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -15,9 +15,9 @@ class SerdeObjectTaggingTest {
     @Test
     fun testToXmlTagging() {
         var tagging = Tagging.Builder().build()
-        runBlocking {
+        runTest {
             assertEquals(
-                String(toXmlTagging(tagging).toByteArray()),
+                toXmlTagging(tagging).toByteArray().decodeToString(),
                 "<Tagging></Tagging>"
             )
         }
@@ -37,9 +37,9 @@ class SerdeObjectTaggingTest {
                 )
             }.build()
         }.build()
-        runBlocking {
+        runTest {
             assertEquals(
-                String(toXmlTagging(tagging).toByteArray()),
+                toXmlTagging(tagging).toByteArray().decodeToString(),
                 xml
             )
         }
@@ -51,7 +51,7 @@ class SerdeObjectTaggingTest {
         assertFailsWith<DeserializationException> { fromXmlTagging(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlTagging("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlTagging("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -68,7 +68,7 @@ class SerdeObjectTaggingTest {
             </TagSet>
             </Tagging>
         """.trimIndent()
-        val result = fromXmlTagging(xml.toByteArray())
+        val result = fromXmlTagging(xml.encodeToByteArray())
         assertEquals(2, result.tagSet?.tags?.size)
         assertEquals("a", result.tagSet?.tags?.first()?.key)
         assertEquals("1", result.tagSet?.tags?.first()?.value)

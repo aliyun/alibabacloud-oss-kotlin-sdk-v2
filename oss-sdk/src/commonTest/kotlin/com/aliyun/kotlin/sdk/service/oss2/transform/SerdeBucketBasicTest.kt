@@ -3,7 +3,7 @@ package com.aliyun.kotlin.sdk.service.oss2.transform
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.DeserializationException
 import com.aliyun.kotlin.sdk.service.oss2.models.CreateBucketConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -16,7 +16,7 @@ class SerdeBucketBasicTest {
         assertFailsWith<DeserializationException> { fromXmlBucketStat(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlBucketStat("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlBucketStat("<a></a>".encodeToByteArray()) }
 
         // normal
         val storage: Long = 1600
@@ -64,7 +64,7 @@ class SerdeBucketBasicTest {
              <DeepColdArchiveObjectCount>$deepColdArchiveObjectCount</DeepColdArchiveObjectCount>
              </BucketStat>
         """.trimIndent()
-        val result = fromXmlBucketStat(xml.toByteArray())
+        val result = fromXmlBucketStat(xml.encodeToByteArray())
         assertEquals(result.storage, storage)
         assertEquals(result.objectCount, objectCount)
         assertEquals(result.multipartUploadCount, multipartUploadCount)
@@ -105,9 +105,9 @@ class SerdeBucketBasicTest {
         val dataRedundancyType = "ZRS"
 
         var xml = toXmlCreateBucketConfiguration(CreateBucketConfiguration.Builder().build())
-        runBlocking {
+        runTest {
             assertEquals(
-                String(xml.toByteArray()),
+                xml.toByteArray().decodeToString(),
                 "<CreateBucketConfiguration></CreateBucketConfiguration>"
             )
         }
@@ -117,9 +117,9 @@ class SerdeBucketBasicTest {
             this.dataRedundancyType = dataRedundancyType
         }.build()
         xml = toXmlCreateBucketConfiguration(createBucketConfiguration)
-        runBlocking {
+        runTest {
             assertEquals(
-                String(xml.toByteArray()),
+                xml.toByteArray().decodeToString(),
                 "<CreateBucketConfiguration><StorageClass>Archive</StorageClass><DataRedundancyType>ZRS</DataRedundancyType></CreateBucketConfiguration>"
             )
         }
@@ -131,7 +131,7 @@ class SerdeBucketBasicTest {
         assertFailsWith<DeserializationException> { fromXmlListBucketResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListBucketResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListBucketResult("<a></a>".encodeToByteArray()) }
 
         // one result
         var xml = """
@@ -163,7 +163,7 @@ class SerdeBucketBasicTest {
             </ListBucketResult>
         """.trimIndent()
 
-        var result = fromXmlListBucketResult(xml.toByteArray())
+        var result = fromXmlListBucketResult(xml.encodeToByteArray())
         assertEquals(result.delimiter, "delimiter")
         assertEquals(result.isTruncated, false)
         assertEquals(result.marker, "marker")
@@ -225,7 +225,7 @@ class SerdeBucketBasicTest {
             </ListBucketResult>
         """.trimIndent()
 
-        result = fromXmlListBucketResult(xml.toByteArray())
+        result = fromXmlListBucketResult(xml.encodeToByteArray())
         assertEquals(result.delimiter, "delimiter")
         assertEquals(result.isTruncated, false)
         assertEquals(result.marker, "marker")
@@ -261,7 +261,7 @@ class SerdeBucketBasicTest {
         assertFailsWith<DeserializationException> { fromXmlListBucketV2Result(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListBucketV2Result("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListBucketV2Result("<a></a>".encodeToByteArray()) }
 
         // normal
         // one result
@@ -296,7 +296,7 @@ class SerdeBucketBasicTest {
             </ListBucketResult>
         """.trimIndent()
 
-        var result = fromXmlListBucketV2Result(xml.toByteArray())
+        var result = fromXmlListBucketV2Result(xml.encodeToByteArray())
         assertEquals(result.delimiter, "delimiter")
         assertEquals(result.isTruncated, false)
         assertEquals(result.continuationToken, "continuationToken")
@@ -362,7 +362,7 @@ class SerdeBucketBasicTest {
             </ListBucketResult>
         """.trimIndent()
 
-        result = fromXmlListBucketV2Result(xml.toByteArray())
+        result = fromXmlListBucketV2Result(xml.encodeToByteArray())
         assertEquals(result.delimiter, "delimiter")
         assertEquals(result.continuationToken, "continuationToken")
         assertEquals(result.nextContinuationToken, "nextContinuationToken")
@@ -399,7 +399,7 @@ class SerdeBucketBasicTest {
         assertFailsWith<DeserializationException> { fromXmlBucketInfo(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlBucketInfo("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlBucketInfo("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -439,7 +439,7 @@ class SerdeBucketBasicTest {
             </Bucket>
             </BucketInfo>
         """.trimIndent()
-        val result = fromXmlBucketInfo(xml.toByteArray())
+        val result = fromXmlBucketInfo(xml.encodeToByteArray())
         assertEquals("Enabled", result.bucket?.accessMonitor)
         assertEquals("2013-07-31T10:56:21.000Z", result.bucket?.creationDate)
         assertEquals("oss-cn-hangzhou.aliyuncs.com", result.bucket?.extranetEndpoint)
@@ -470,11 +470,11 @@ class SerdeBucketBasicTest {
         assertFailsWith<DeserializationException> { fromXmlBucketLocation(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlBucketLocation("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlBucketLocation("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = "<LocationConstraint>oss-cn-hangzhou</LocationConstraint>"
-        val result = fromXmlBucketLocation(xml.toByteArray())
+        val result = fromXmlBucketLocation(xml.encodeToByteArray())
         assertEquals("oss-cn-hangzhou", result)
     }
 }

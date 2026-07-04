@@ -4,7 +4,7 @@ import com.aliyun.kotlin.sdk.service.oss2.credentials.Credentials
 import com.aliyun.kotlin.sdk.service.oss2.credentials.StaticCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
 import com.aliyun.kotlin.sdk.service.oss2.utils.HttpUtils
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.apply
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -38,7 +38,7 @@ class SignerV1Test {
             signTimeInEpoch = 1702743657L // Instant.fromEpochSeconds(1702743657)
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 
@@ -77,7 +77,7 @@ class SignerV1Test {
             signTimeInEpoch = 1702743657L // Instant.fromEpochSeconds(1702743657)
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 
@@ -111,7 +111,7 @@ class SignerV1Test {
             signTimeInEpoch = 1702743657L // Instant.fromEpochSeconds(1702743657)
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 
@@ -145,7 +145,7 @@ class SignerV1Test {
             signTimeInEpoch = 1702743657L // Instant.fromEpochSeconds(1702743657)
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
             assertEquals(
@@ -179,7 +179,7 @@ class SignerV1Test {
             isAuthMethodQuery = true
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 
@@ -212,7 +212,7 @@ class SignerV1Test {
         context.expirationInEpoch = 1699808204L // Instant.fromEpochSeconds(1699808204)
         context.isAuthMethodQuery = true
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 
@@ -274,7 +274,7 @@ class SignerV1Test {
             this.url = url.toString()
         }
 
-        runBlocking {
+        runTest {
             val signer = SignerV1()
             signer.sign(context)
 

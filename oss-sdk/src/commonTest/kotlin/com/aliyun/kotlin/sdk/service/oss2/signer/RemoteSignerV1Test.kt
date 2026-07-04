@@ -25,7 +25,7 @@ private class SignatureImpl : SignatureDelegate {
         accessKeySecret: String,
         stringToSign: String
     ): String {
-        val signatureBytes = stringToSign.toByteArray().hmacSha1(accessKeySecret.toByteArray())
+        val signatureBytes = stringToSign.encodeToByteArray().hmacSha1(accessKeySecret.encodeToByteArray())
         return Base64.encode(signatureBytes)
     }
 }

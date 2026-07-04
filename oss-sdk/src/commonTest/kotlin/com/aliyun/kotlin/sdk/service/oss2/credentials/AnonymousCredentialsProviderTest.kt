@@ -1,6 +1,6 @@
 package com.aliyun.kotlin.sdk.service.oss2.credentials
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -11,7 +11,7 @@ class AnonymousCredentialsProviderTest {
 
     @Test
     fun testConstructor() {
-        runBlocking {
+        runTest {
             val provider = AnonymousCredentialsProvider()
             assertNotNull(provider)
 

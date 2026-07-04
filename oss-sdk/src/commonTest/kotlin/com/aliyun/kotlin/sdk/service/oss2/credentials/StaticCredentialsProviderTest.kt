@@ -1,12 +1,12 @@
 package com.aliyun.kotlin.sdk.service.oss2.credentials
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class StaticCredentialsProviderTest {
     @Test
     fun testConstructor() {
-        runBlocking {
+        runTest {
             var provider = StaticCredentialsProvider("ak", "sk")
             assertNotNull(provider)
 

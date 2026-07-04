@@ -25,7 +25,6 @@ import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.FeatureFlagsType
 import com.aliyun.kotlin.sdk.service.oss2.utils.Base64Utils
 import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.format
 import kotlinx.datetime.format.DateTimeComponents
@@ -175,7 +174,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -214,7 +213,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     val output = client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -267,7 +266,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -300,7 +299,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -334,7 +333,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -368,7 +367,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -413,7 +412,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -459,7 +458,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -509,7 +508,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -548,7 +547,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.build { retryMaxAttempts = 2 })
                     assertFails { "should not here" }
@@ -598,7 +597,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -647,7 +646,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -691,7 +690,7 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -735,13 +734,13 @@ class ClientImplMockTest {
                 object : ByteStream.Buffer() {
                     override val isOneShot: Boolean = true
                     override fun bytes(): ByteArray {
-                        return "".toByteArray()
+                        return "".encodeToByteArray()
                     }
                     override val contentLength: Long = 0
                 }.also { body = it }
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -795,7 +794,7 @@ class ClientImplMockTest {
                 }
             }
 
-            runBlocking {
+            runTest {
                 val start = Clock.System.now()
 
                 try {
@@ -850,7 +849,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -902,7 +901,7 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -940,13 +939,13 @@ class ClientImplMockTest {
                 body = object : ByteStream.Buffer() {
                     override val isOneShot: Boolean = true
                     override fun bytes(): ByteArray {
-                        return "".toByteArray()
+                        return "".encodeToByteArray()
                     }
                     override val contentLength: Long = 0
                 }
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -981,7 +980,7 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1023,7 +1022,7 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1058,7 +1057,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1081,7 +1080,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1108,7 +1107,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1145,7 +1144,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1168,7 +1167,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1195,7 +1194,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1233,7 +1232,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1256,7 +1255,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1280,7 +1279,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1314,7 +1313,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1337,7 +1336,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1361,7 +1360,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1399,7 +1398,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1430,7 +1429,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1462,7 +1461,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runBlocking {
+            runTest {
                 val output = client.execute(input, OperationOptions.Default)
                 assertNotNull(mockHandler.requests)
                 assertEquals(1, mockHandler.requests!!.size)
@@ -1517,7 +1516,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1568,7 +1567,7 @@ class ClientImplMockTest {
                     "Content-Type" to "application/xml",
                     "x-oss-request-id" to "5C3D9175B6FC201293AD****",
                     "Date" to "Fri, 24 Feb 2017 03:15:40 GMT",
-                    "x-oss-err" to Base64Utils.encodeToString(xmlBody.toByteArray())
+                    "x-oss-err" to Base64Utils.encodeToString(xmlBody.encodeToByteArray())
                 )
             ),
         )
@@ -1583,7 +1582,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1640,7 +1639,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1705,7 +1704,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1770,7 +1769,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1840,7 +1839,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }
@@ -1876,7 +1875,7 @@ class ClientImplMockTest {
         mockHandler.responses!!.add(
             ResponseMessage(
                 statusCode = 404,
-                // body = xmlBody.toByteArray(),
+                // body = xmlBody.encodeToByteArray(),
                 headers = mutableMapOf(
                     "Content-Type" to "application/xml",
                     "x-oss-request-id" to "6C3D9175B6FC201293AD****",
@@ -1895,7 +1894,7 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runBlocking {
+            runTest {
                 try {
                     client.execute(input, OperationOptions.Default)
                     assertFails { "should not here" }

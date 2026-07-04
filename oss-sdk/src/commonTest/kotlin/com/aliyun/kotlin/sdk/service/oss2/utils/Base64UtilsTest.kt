@@ -11,10 +11,10 @@ class Base64UtilsTest {
 
         for (i in testVectors.indices) {
             val data = testVectors[i]
-            val source = data.toByteArray()
-            val b64encoded = Base64Utils.encodeToString(data.toByteArray())
+            val source = data.encodeToByteArray()
+            val b64encoded = Base64Utils.encodeToString(data.encodeToByteArray())
             assertEquals(expected[i], b64encoded)
-            val b64 = b64encoded.toByteArray()
+            val b64 = b64encoded.encodeToByteArray()
 
             val decoded = decode(b64)
             assertContentEquals(source, decoded)

@@ -49,7 +49,7 @@ class ServiceExceptionTest {
         val statusCode = 403
         val requestTarget = "http://oss-cn-hangzhou.aliyuncs.com/1.txt"
         val timestamp = "Thu, 15 May 2025 11:18:32 GMT"
-        val payload = "hello".toByteArray()
+        val payload = "hello".encodeToByteArray()
 
         val error = ServiceException(
             statusCode = statusCode,
@@ -96,7 +96,7 @@ class ServiceExceptionTest {
         val statusCode = 403
         val requestTarget = "http://oss-cn-hangzhou.aliyuncs.com/1.txt"
         val timestamp = "Thu, 15 May 2025 11:18:32 GMT"
-        val payload = "hello".toByteArray()
+        val payload = "hello".encodeToByteArray()
 
         val error = ServiceException(
             statusCode = statusCode,

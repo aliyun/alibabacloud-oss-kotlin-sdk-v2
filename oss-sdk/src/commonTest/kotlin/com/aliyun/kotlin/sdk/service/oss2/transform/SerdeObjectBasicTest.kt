@@ -6,7 +6,6 @@ import com.aliyun.kotlin.sdk.service.oss2.models.JobParameters
 import com.aliyun.kotlin.sdk.service.oss2.models.ObjectIdentifier
 import com.aliyun.kotlin.sdk.service.oss2.models.RestoreRequest
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,7 +20,7 @@ class SerdeObjectBasicTest {
         assertFailsWith<DeserializationException> { fromXmlCopyObject(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlCopyObject("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlCopyObject("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -30,7 +29,7 @@ class SerdeObjectBasicTest {
             <LastModified>2019-04-09T03:45:32.000Z</LastModified>
             </CopyObjectResult>
         """.trimIndent()
-        val result = fromXmlCopyObject(xml.toByteArray())
+        val result = fromXmlCopyObject(xml.encodeToByteArray())
         assertEquals("\"C4CA4238A0B923820DCC509A6F75****\"", result.eTag)
         assertEquals("2019-04-09T03:45:32.000Z", result.lastModified)
     }
@@ -38,8 +37,8 @@ class SerdeObjectBasicTest {
     @Test
     fun testToXmlRestoreRequest() {
         var restoreRequest = RestoreRequest.Builder().build()
-        runBlocking {
-            assertEquals("<RestoreRequest></RestoreRequest>", String(toXmlRestoreRequest(restoreRequest).toByteArray()))
+        runTest {
+            assertEquals("<RestoreRequest></RestoreRequest>", toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString())
         }
 
         restoreRequest = RestoreRequest.Builder().apply {
@@ -48,8 +47,8 @@ class SerdeObjectBasicTest {
                 tier = "Standard"
             }.build()
         }.build()
-        runBlocking {
-            val actual = String(toXmlRestoreRequest(restoreRequest).toByteArray())
+        runTest {
+            val actual = toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString()
             val xml = """
                 <RestoreRequest>
                 <Days>2</Days>
@@ -64,25 +63,23 @@ class SerdeObjectBasicTest {
 
     @Test
     fun testToXmlDeleteMultipleObjects() = runTest {
-        assertEquals("<Delete></Delete>", String(toXmlDeleteMultipleObjects(Delete {}).toByteArray()))
+        assertEquals("<Delete></Delete>", toXmlDeleteMultipleObjects(Delete {}).toByteArray().decodeToString())
 
-        val actual = String(
-            toXmlDeleteMultipleObjects(
-                Delete {
-                    quiet = true
-                    objects = listOf(
-                        ObjectIdentifier {
-                            key = "key1"
-                            versionId = "versionId1"
-                        },
-                        ObjectIdentifier {
-                            key = "key2"
-                            versionId = "versionId2"
-                        }
-                    )
-                }
-            ).toByteArray()
-        )
+        val actual = toXmlDeleteMultipleObjects(
+            Delete {
+                quiet = true
+                objects = listOf(
+                    ObjectIdentifier {
+                        key = "key1"
+                        versionId = "versionId1"
+                    },
+                    ObjectIdentifier {
+                        key = "key2"
+                        versionId = "versionId2"
+                    }
+                )
+            }
+        ).toByteArray().decodeToString()
         val xml = """
                 <Delete>
                 <Quiet>true</Quiet>
@@ -107,7 +104,7 @@ class SerdeObjectBasicTest {
         assertNull(result.encodingType)
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlDeleteMultipleObjects("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlDeleteMultipleObjects("<a></a>".encodeToByteArray()) }
 
         // normal
         var xml = """
@@ -126,7 +123,7 @@ class SerdeObjectBasicTest {
             </Deleted>
             </DeleteResult>
         """.trimIndent()
-        result = fromXmlDeleteMultipleObjects(xml.toByteArray())
+        result = fromXmlDeleteMultipleObjects(xml.encodeToByteArray())
         assertEquals(2, result.deletedObjects?.size)
         assertEquals("a%2fmultipart.data", result.deletedObjects?.first()?.key)
         assertEquals("versionId1", result.deletedObjects?.first()?.versionId)
@@ -161,7 +158,7 @@ class SerdeObjectBasicTest {
             <EncodingType>url</EncodingType>
             </DeleteResult>
         """.trimIndent()
-        result = fromXmlDeleteMultipleObjects(xml.toByteArray())
+        result = fromXmlDeleteMultipleObjects(xml.encodeToByteArray())
         assertEquals(2, result.deletedObjects?.size)
         assertEquals("a/multipart.data", result.deletedObjects?.first()?.key)
         assertEquals("versionId1", result.deletedObjects?.first()?.versionId)
