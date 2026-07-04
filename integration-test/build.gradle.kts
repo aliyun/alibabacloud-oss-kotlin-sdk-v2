@@ -7,6 +7,17 @@ kotlin {
     jvmToolchain(17)
     jvm()
     androidTarget()
+    js {
+        nodejs {
+            testTask {
+                useMocha {
+                    timeout = "60s"
+                }
+            }
+        }
+    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain.dependencies {
@@ -23,6 +34,10 @@ kotlin {
 
         jvmTest.dependencies {
             implementation(libs.ktor.client.okhttp)
+        }
+
+        jsTest.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }

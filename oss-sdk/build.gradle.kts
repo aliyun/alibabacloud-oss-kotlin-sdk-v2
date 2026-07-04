@@ -35,6 +35,10 @@ kotlin {
 
     jvm()
 
+    js {
+        nodejs()
+    }
+
     jvmToolchain(17)
 
     applyDefaultHierarchyTemplate()
@@ -70,15 +74,24 @@ kotlin {
             dependsOn(jvmCommonMain)
         }
 
-        /*
         val nonJvmCommonMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.cio)
+                implementation(libs.kotlincrypto.hash.md)
+                implementation(libs.kotlincrypto.hash.sha1)
+                implementation(libs.kotlincrypto.hash.sha2)
+                implementation(libs.kotlincrypto.macs.hmac.sha1)
+                implementation(libs.kotlincrypto.macs.hmac.sha2)
             }
         }
-         */
+
+        val jsMain by getting {
+            dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
+        }
 
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)

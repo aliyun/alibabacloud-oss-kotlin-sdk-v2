@@ -28,6 +28,10 @@ kotlin {
 
     jvm()
 
+    js {
+        nodejs()
+    }
+
     jvmToolchain(17)
 
     applyDefaultHierarchyTemplate()

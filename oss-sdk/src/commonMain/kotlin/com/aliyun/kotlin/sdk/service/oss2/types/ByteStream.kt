@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.toList
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
@@ -55,6 +56,21 @@ public sealed class ByteStream {
         public abstract fun readFrom(): RawSource
     }
 
+    /**
+     * Variant of a [ByteStream] whose payload is delivered asynchronously as a [Flow] of byte
+     * chunks. Used by non-blocking transports (for example Ktor on the JS target) where the
+     * payload cannot be exposed as a synchronous [kotlinx.io.RawSource].
+     */
+    public abstract class ChannelStream : ByteStream(), AutoCloseable {
+        /**
+         * Provides the payload as a cold [Flow] of byte chunks. Collecting the flow consumes the
+         * underlying stream. Implementations are typically one-shot ([isOneShot] = `true`).
+         */
+        public abstract fun chunks(): Flow<ByteArray>
+
+        override fun close() {}
+    }
+
     public companion object {
         /**
          * Create a [ByteStream] from a [String]
@@ -81,12 +97,23 @@ public sealed class ByteStream {
 public suspend fun ByteStream.toByteArray(): ByteArray = when (val stream = this) {
     is ByteStream.Buffer -> stream.bytes()
     is ByteStream.SourceStream -> stream.readFrom().buffered().use { it.readByteArray() }
+    is ByteStream.ChannelStream -> {
+        val parts = stream.chunks().toList()
+        val out = ByteArray(parts.sumOf { it.size })
+        var offset = 0
+        parts.forEach { part ->
+            part.copyInto(out, offset)
+            offset += part.size
+        }
+        out
+    }
 }
 
 public fun ByteStream.cancel() {
     when (val stream = this) {
         is ByteStream.Buffer -> stream.bytes()
         is ByteStream.SourceStream -> stream.readFrom().close()
+        is ByteStream.ChannelStream -> stream.close()
     }
 }
 
@@ -101,6 +128,7 @@ public fun ByteStream.cancel() {
 public fun ByteStream.toFlow(bufferSize: Long = 8192): Flow<ByteArray> = when (this) {
     is ByteStream.Buffer -> flowOf(bytes())
     is ByteStream.SourceStream -> readFrom().toFlow(bufferSize).flowOn(ioDispatcher)
+    is ByteStream.ChannelStream -> chunks()
 }
 
 private fun RawSource.toFlow(bufferSize: Long): Flow<ByteArray> {

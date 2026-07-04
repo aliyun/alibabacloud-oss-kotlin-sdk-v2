@@ -1,16 +1,28 @@
 package com.aliyun.kotlin.sdk.service.oss2.internal
 
--import io.ktor.http.Url
--import io.ktor.http.authority
--import io.ktor.http.parseUrl
+internal actual fun parseUrl(url: String): Map<String, String>? {
+    val schemeSep = url.indexOf("://")
+    if (schemeSep <= 0) return null
+    val scheme = url.substring(0, schemeSep)
 
-actual fun parseUrl(url: String): Map<String, String>? {
-    parseUrl(endpoint)?.let (
-        return mapOf<String, String>(
-            "scheme" to it.protocol.name,
-            "host" to it.host,
-            "authority" to it.authority,
-        )
+    val rest = url.substring(schemeSep + 3)
+    if (rest.isEmpty()) return null
+
+    val authorityEnd = rest.indexOfFirst { it == '/' || it == '?' || it == '#' }
+    val authority = if (authorityEnd == -1) rest else rest.substring(0, authorityEnd)
+    if (authority.isEmpty()) return null
+
+    val hostPort = authority.substringAfterLast('@')
+    val host = if (hostPort.startsWith("[")) {
+        hostPort.substringAfter('[').substringBefore(']')
+    } else {
+        hostPort.substringBefore(':')
+    }
+    if (host.isEmpty()) return null
+
+    return mapOf(
+        "scheme" to scheme,
+        "host" to host,
+        "authority" to authority,
     )
-    return null
 }
