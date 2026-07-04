@@ -5,6 +5,12 @@ plugins {
 kotlin {
     jvmToolchain(17)
     jvm()
+    js {
+        nodejs()
+        binaries.executable()
+    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain.dependencies {
@@ -12,6 +18,10 @@ kotlin {
             implementation(libs.kotlinx.io.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(project(":oss-sdk"))
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
     }
 }

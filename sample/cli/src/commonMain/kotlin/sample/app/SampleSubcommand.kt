@@ -1,10 +1,7 @@
 package sample.app
 
-import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest.Companion.invoke
 import kotlinx.cli.ExperimentalCli
 import kotlinx.cli.Subcommand
-import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalCli::class)
 abstract class SampleSubcommand(
@@ -12,7 +9,7 @@ abstract class SampleSubcommand(
     actionDescription: String
 ): Subcommand(name, actionDescription) {
     override fun execute() {
-        runBlocking {
+        runCommand {
             try {
                 executeCommand()
             } catch (e: Exception) {
@@ -23,3 +20,5 @@ abstract class SampleSubcommand(
 
     abstract suspend fun executeCommand()
 }
+
+expect fun runCommand(block: suspend () -> Unit)

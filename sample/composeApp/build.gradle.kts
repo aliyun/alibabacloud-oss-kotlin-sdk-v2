@@ -12,6 +12,16 @@ kotlin {
 
     androidTarget()
     jvm()
+    js {
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        binaries.executable()
+    }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         commonMain.dependencies {
@@ -29,6 +39,10 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
 
     }

@@ -37,6 +37,7 @@ kotlin {
 
     js {
         nodejs()
+        browser()
     }
 
     jvmToolchain(17)
