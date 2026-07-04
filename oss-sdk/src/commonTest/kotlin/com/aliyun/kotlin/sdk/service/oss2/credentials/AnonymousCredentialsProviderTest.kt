@@ -10,16 +10,14 @@ import kotlin.test.assertNull
 class AnonymousCredentialsProviderTest {
 
     @Test
-    fun testConstructor() {
-        runTest {
-            val provider = AnonymousCredentialsProvider()
-            assertNotNull(provider)
+    fun testConstructor() = runTest {
+        val provider = AnonymousCredentialsProvider()
+        assertNotNull(provider)
 
-            val cred = provider.getCredentials()
-            assertEquals("", cred.accessKeyId)
-            assertEquals("", cred.accessKeySecret)
-            assertNull(cred.securityToken)
-            assertFalse(cred.hasKeys())
-        }
+        val cred = provider.getCredentials()
+        assertEquals("", cred.accessKeyId)
+        assertEquals("", cred.accessKeySecret)
+        assertNull(cred.securityToken)
+        assertFalse(cred.hasKeys())
     }
 }

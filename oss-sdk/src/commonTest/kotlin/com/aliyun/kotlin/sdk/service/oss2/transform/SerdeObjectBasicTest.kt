@@ -35,11 +35,9 @@ class SerdeObjectBasicTest {
     }
 
     @Test
-    fun testToXmlRestoreRequest() {
+    fun testToXmlRestoreRequest() = runTest {
         var restoreRequest = RestoreRequest.Builder().build()
-        runTest {
-            assertEquals("<RestoreRequest></RestoreRequest>", toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString())
-        }
+        assertEquals("<RestoreRequest></RestoreRequest>", toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString())
 
         restoreRequest = RestoreRequest.Builder().apply {
             days = 2
@@ -47,18 +45,16 @@ class SerdeObjectBasicTest {
                 tier = "Standard"
             }.build()
         }.build()
-        runTest {
-            val actual = toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString()
-            val xml = """
+        val actual = toXmlRestoreRequest(restoreRequest).toByteArray().decodeToString()
+        val xml = """
                 <RestoreRequest>
                 <Days>2</Days>
                 <JobParameters>
                 <Tier>Standard</Tier>
                 </JobParameters>
                 </RestoreRequest>
-            """.trimIndent().replace("\n", "")
-            assertEquals(xml, actual)
-        }
+        """.trimIndent().replace("\n", "")
+        assertEquals(xml, actual)
     }
 
     @Test

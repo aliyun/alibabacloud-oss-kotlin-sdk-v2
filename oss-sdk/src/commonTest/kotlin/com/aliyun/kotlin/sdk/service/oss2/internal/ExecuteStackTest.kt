@@ -18,7 +18,7 @@ class ExecuteStackTest {
     }
 
     @Test
-    fun testConstructor() {
+    fun testConstructor() = runTest {
         // build execute stack
         val transport = TransportExecuteMiddleware(MockHttpClient())
         val stack = ExecuteStack(transport)
@@ -27,8 +27,6 @@ class ExecuteStackTest {
         stack.push({ x -> SignerExecuteMiddleware(x, AnonymousCredentialsProvider(), NopSigner()) }, "Signer")
         stack.push({ x -> ResponseCheckerExecuteMiddleware(x) }, "ResponseChecker")
 
-        runTest {
-            stack.execute(RequestMessage(), ExecuteContext())
-        }
+        stack.execute(RequestMessage(), ExecuteContext())
     }
 }

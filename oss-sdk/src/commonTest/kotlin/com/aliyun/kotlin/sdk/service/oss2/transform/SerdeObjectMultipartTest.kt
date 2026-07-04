@@ -51,14 +51,12 @@ class SerdeObjectMultipartTest {
     }
 
     @Test
-    fun testToXmlCompleteMultipartUpload() {
+    fun testToXmlCompleteMultipartUpload() = runTest {
         var completeMultipartUpload = CompleteMultipartUpload.Builder().build()
-        runTest {
-            assertEquals(
-                "<CompleteMultipartUpload></CompleteMultipartUpload>",
-                toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
-            )
-        }
+        assertEquals(
+            "<CompleteMultipartUpload></CompleteMultipartUpload>",
+            toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
+        )
 
         val xml = """
             <CompleteMultipartUpload>
@@ -92,12 +90,10 @@ class SerdeObjectMultipartTest {
                 }.build()
             )
         }.build()
-        runTest {
-            assertEquals(
-                xml,
-                toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
-            )
-        }
+        assertEquals(
+            xml,
+            toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
+        )
     }
 
     @Test

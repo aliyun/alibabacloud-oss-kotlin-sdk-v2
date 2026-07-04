@@ -13,14 +13,12 @@ import kotlin.test.assertFailsWith
 class SerdeObjectTaggingTest {
 
     @Test
-    fun testToXmlTagging() {
+    fun testToXmlTagging() = runTest {
         var tagging = Tagging.Builder().build()
-        runTest {
-            assertEquals(
-                toXmlTagging(tagging).toByteArray().decodeToString(),
-                "<Tagging></Tagging>"
-            )
-        }
+        assertEquals(
+            toXmlTagging(tagging).toByteArray().decodeToString(),
+            "<Tagging></Tagging>"
+        )
 
         val xml = "<Tagging><TagSet><Tag><Key>a</Key><Value>1</Value></Tag><Tag><Key>b</Key><Value>2</Value></Tag></TagSet></Tagging>"
         tagging = Tagging.Builder().apply {
@@ -37,12 +35,10 @@ class SerdeObjectTaggingTest {
                 )
             }.build()
         }.build()
-        runTest {
-            assertEquals(
-                toXmlTagging(tagging).toByteArray().decodeToString(),
-                xml
-            )
-        }
+        assertEquals(
+            toXmlTagging(tagging).toByteArray().decodeToString(),
+            xml
+        )
     }
 
     @Test

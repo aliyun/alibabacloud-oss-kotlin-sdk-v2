@@ -100,29 +100,25 @@ class SerdeBucketBasicTest {
     }
 
     @Test
-    fun testToXmlCreateBucketConfiguration() {
+    fun testToXmlCreateBucketConfiguration() = runTest {
         val storageClass = "Archive"
         val dataRedundancyType = "ZRS"
 
         var xml = toXmlCreateBucketConfiguration(CreateBucketConfiguration.Builder().build())
-        runTest {
-            assertEquals(
-                xml.toByteArray().decodeToString(),
-                "<CreateBucketConfiguration></CreateBucketConfiguration>"
-            )
-        }
+        assertEquals(
+            xml.toByteArray().decodeToString(),
+            "<CreateBucketConfiguration></CreateBucketConfiguration>"
+        )
 
         val createBucketConfiguration = CreateBucketConfiguration.Builder().apply {
             this.storageClass = storageClass
             this.dataRedundancyType = dataRedundancyType
         }.build()
         xml = toXmlCreateBucketConfiguration(createBucketConfiguration)
-        runTest {
-            assertEquals(
-                xml.toByteArray().decodeToString(),
-                "<CreateBucketConfiguration><StorageClass>Archive</StorageClass><DataRedundancyType>ZRS</DataRedundancyType></CreateBucketConfiguration>"
-            )
-        }
+        assertEquals(
+            xml.toByteArray().decodeToString(),
+            "<CreateBucketConfiguration><StorageClass>Archive</StorageClass><DataRedundancyType>ZRS</DataRedundancyType></CreateBucketConfiguration>"
+        )
     }
 
     @Test

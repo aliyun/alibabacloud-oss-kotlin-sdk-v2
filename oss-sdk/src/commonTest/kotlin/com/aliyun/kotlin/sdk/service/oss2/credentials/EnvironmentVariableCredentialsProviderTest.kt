@@ -6,14 +6,12 @@ import kotlin.test.*
 class EnvironmentVariableCredentialsProviderTest {
 
     @Test
-    fun testConstructor() {
-        runTest {
-            val provider = EnvironmentVariableCredentialsProvider()
-            assertNotNull(provider)
+    fun testConstructor() = runTest {
+        val provider = EnvironmentVariableCredentialsProvider()
+        assertNotNull(provider)
 
-            val cred = provider.getCredentials()
-            assertNotNull(cred.accessKeyId)
-            assertNotNull(cred.accessKeySecret)
-        }
+        val cred = provider.getCredentials()
+        assertNotNull(cred.accessKeyId)
+        assertNotNull(cred.accessKeySecret)
     }
 }

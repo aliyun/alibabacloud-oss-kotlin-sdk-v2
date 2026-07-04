@@ -145,7 +145,7 @@ class ClientImplMockTest {
     }
 
     @Test
-    fun invokeOperationSuccess() {
+    fun invokeOperationSuccess() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -174,17 +174,15 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
         }
     }
 
     @Test
-    fun invokeOperationFail() {
+    fun invokeOperationFail() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -213,30 +211,28 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    val output = client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(403, se.statusCode)
-                    assertEquals("InvalidAccessKeyId", se.errorCode)
-                    assertEquals("The OSS Access Key Id you provided does not exist in our records.", se.errorMessage)
-                    assertEquals("id-1234", se.requestId)
-                    assertEquals("0002-00000902", se.ec)
-                    assertEquals("oss-cn-hangzhou.aliyuncs.com", se.errorFields["HostId"])
-                    assertEquals("https://api.aliyun.com/troubleshoot?q=0002-00000902", se.errorFields["RecommendDoc"])
-                    assertEquals("ak", se.errorFields["OSSAccessKeyId"])
-                }
+            try {
+                val output = client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(403, se.statusCode)
+                assertEquals("InvalidAccessKeyId", se.errorCode)
+                assertEquals("The OSS Access Key Id you provided does not exist in our records.", se.errorMessage)
+                assertEquals("id-1234", se.requestId)
+                assertEquals("0002-00000902", se.ec)
+                assertEquals("oss-cn-hangzhou.aliyuncs.com", se.errorFields["HostId"])
+                assertEquals("https://api.aliyun.com/troubleshoot?q=0002-00000902", se.errorFields["RecommendDoc"])
+                assertEquals("ak", se.errorFields["OSSAccessKeyId"])
             }
         }
     }
 
     @Test
-    fun verifyExecuteArgsInvalidEndpoint() {
+    fun verifyExecuteArgsInvalidEndpoint() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -266,19 +262,17 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: Exception) {
-                    assertContains(e.toString(), "endpoint or region is invalid")
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: Exception) {
+                assertContains(e.toString(), "endpoint or region is invalid")
             }
         }
     }
 
     @Test
-    fun verifyExecuteArgsInvalidMethod() {
+    fun verifyExecuteArgsInvalidMethod() = runTest {
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
             credentialsProvider = StaticCredentialsProvider("ak", "sk")
@@ -299,19 +293,17 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: Exception) {
-                    assertContains(e.toString(), "input.method is empty")
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: Exception) {
+                assertContains(e.toString(), "input.method is empty")
             }
         }
     }
 
     @Test
-    fun verifyExecuteArgsInvalidBucketName() {
+    fun verifyExecuteArgsInvalidBucketName() = runTest {
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
             credentialsProvider = StaticCredentialsProvider("ak", "sk")
@@ -333,19 +325,17 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: Exception) {
-                    assertContains(e.toString(), "input.bucket is invalid, got 12.")
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: Exception) {
+                assertContains(e.toString(), "input.bucket is invalid, got 12.")
             }
         }
     }
 
     @Test
-    fun verifyExecuteArgsInvalidObjectName() {
+    fun verifyExecuteArgsInvalidObjectName() = runTest {
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
             credentialsProvider = StaticCredentialsProvider("ak", "sk")
@@ -367,19 +357,17 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: Exception) {
-                    assertContains(e.toString(), "input.key is invalid, got")
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: Exception) {
+                assertContains(e.toString(), "input.key is invalid, got")
             }
         }
     }
 
     @Test
-    fun configRetryMaxAttemptsFromClientOptions() {
+    fun configRetryMaxAttemptsFromClientOptions() = runTest {
         val mockHandler = MockHttpClient()
 
         // default max retry attempts is 3
@@ -412,18 +400,16 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(Defaults.MAX_ATTEMPTS, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(500, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(Defaults.MAX_ATTEMPTS, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(500, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
 
@@ -458,24 +444,22 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(4, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(500, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(4, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(500, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
     }
 
     @Test
-    fun configRetryMaxAttemptsFromOperationOptions() {
+    fun configRetryMaxAttemptsFromOperationOptions() = runTest {
         val mockHandler = MockHttpClient()
 
         // default max retry attempts is 3
@@ -508,18 +492,16 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: Exception) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(Defaults.MAX_ATTEMPTS, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(500, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: Exception) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(Defaults.MAX_ATTEMPTS, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(500, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
 
@@ -547,24 +529,22 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.build { retryMaxAttempts = 2 })
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(2, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(500, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.build { retryMaxAttempts = 2 })
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(2, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(500, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
     }
 
     @Test
-    fun configRetryMaxAttemptsNopRetryer() {
+    fun configRetryMaxAttemptsNopRetryer() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -597,24 +577,22 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(500, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(500, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
     }
 
     @Test
-    fun configNoRetryError() {
+    fun configNoRetryError() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -646,24 +624,22 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(403, se.statusCode)
-                    assertEquals("InvalidAccessKeyId", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(403, se.statusCode)
+                assertEquals("InvalidAccessKeyId", se.errorCode)
             }
         }
     }
 
     @Test
-    fun configSeekableStream() {
+    fun configSeekableStream() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -690,24 +666,22 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(3, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(503, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(3, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(503, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
             }
         }
     }
 
     @Test
-    fun configNoSeekableStream() {
+    fun configNoSeekableStream() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -740,24 +714,22 @@ class ClientImplMockTest {
                 }.also { body = it }
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(501, se.statusCode)
-                    assertEquals("InvalidAccessKeyId", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(501, se.statusCode)
+                assertEquals("InvalidAccessKeyId", se.errorCode)
             }
         }
     }
 
     @Test
-    fun checkBackoffSleepTime() {
+    fun checkBackoffSleepTime() = runTest {
         val mockHandler = MockHttpClient()
 
         // max retry attempts is 3, delay backoff is 2s
@@ -794,33 +766,31 @@ class ClientImplMockTest {
                 }
             }
 
-            runTest {
-                val start = Clock.System.now()
+            val start = Clock.System.now()
 
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(501, se.statusCode)
-                    assertEquals("InvalidAccessKeyId", se.errorCode)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(501, se.statusCode)
+                assertEquals("InvalidAccessKeyId", se.errorCode)
+            }
 
-                val diff = Clock.System.now() - start
+            val diff = Clock.System.now() - start
 
-                assertTrue {
-                    diff >= 4.toDuration(DurationUnit.SECONDS)
-                    diff < 5.toDuration(DurationUnit.SECONDS)
-                }
+            assertTrue {
+                diff >= 4.toDuration(DurationUnit.SECONDS)
+                diff < 5.toDuration(DurationUnit.SECONDS)
             }
         }
     }
 
     @Test
-    fun configSignerV4() {
+    fun configSignerV4() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -849,29 +819,27 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertEquals(
-                    "UNSIGNED-PAYLOAD",
-                    mockHandler.lastRequest!!.headers["x-oss-content-sha256"]
-                )
-                assertContains(
-                    mockHandler.lastRequest!!.headers["Authorization"]!!,
-                    "OSS4-HMAC-SHA256 Credential=ak/",
-                )
-                assertContains(
-                    mockHandler.lastRequest!!.headers["x-oss-date"]!!,
-                    "202",
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertEquals(
+                "UNSIGNED-PAYLOAD",
+                mockHandler.lastRequest!!.headers["x-oss-content-sha256"]
+            )
+            assertContains(
+                mockHandler.lastRequest!!.headers["Authorization"]!!,
+                "OSS4-HMAC-SHA256 Credential=ak/",
+            )
+            assertContains(
+                mockHandler.lastRequest!!.headers["x-oss-date"]!!,
+                "202",
+            )
         }
     }
 
     @Test
-    fun configSignerV1() {
+    fun configSignerV1() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -901,21 +869,19 @@ class ClientImplMockTest {
                 this.parameters = parameters
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.headers["Authorization"]!!,
-                    "OSS ak:",
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.headers["Authorization"]!!,
+                "OSS ak:",
+            )
         }
     }
 
     @Test
-    fun sendAnonymousRequest() {
+    fun sendAnonymousRequest() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -945,18 +911,16 @@ class ClientImplMockTest {
                 }
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertFalse(mockHandler.lastRequest!!.headers.containsKey("Authorization"))
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertFalse(mockHandler.lastRequest!!.headers.containsKey("Authorization"))
         }
     }
 
     @Test
-    fun returnsEmptyCredentials() {
+    fun returnsEmptyCredentials() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -980,21 +944,19 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    // assertNotNull(mockHandler.requests)
-                    // assertEquals(1, mockHandler.requests!!.size)
-                    assertContains(e.toString(), "Credentials is null or empty",)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                // assertNotNull(mockHandler.requests)
+                // assertEquals(1, mockHandler.requests!!.size)
+                assertContains(e.toString(), "Credentials is null or empty",)
             }
         }
     }
 
     @Test
-    fun returnsFetchCredentialsThrowException() {
+    fun returnsFetchCredentialsThrowException() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1022,20 +984,18 @@ class ClientImplMockTest {
                 body = ByteStream.fromString("")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertContains(e.toString(), "Fetch Credentials raised an exception")
-                    assertContains(e.toString(), "fetch and throw exception")
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertContains(e.toString(), "Fetch Credentials raised an exception")
+                assertContains(e.toString(), "fetch and throw exception")
             }
         }
     }
 
     @Test
-    fun useVirtualHostAddressingMode() {
+    fun useVirtualHostAddressingMode() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1057,13 +1017,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "https://oss-cn-hangzhou.aliyuncs.com/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "https://oss-cn-hangzhou.aliyuncs.com/?key=value")
         }
 
         // bucket
@@ -1080,16 +1038,14 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.url,
-                    "https://my-bucket.oss-cn-hangzhou.aliyuncs.com/?key=value"
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.url,
+                "https://my-bucket.oss-cn-hangzhou.aliyuncs.com/?key=value"
+            )
         }
 
         // bucket & key
@@ -1107,21 +1063,19 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.url,
-                    "https://my-bucket.oss-cn-hangzhou.aliyuncs.com/my-key?key=value"
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.url,
+                "https://my-bucket.oss-cn-hangzhou.aliyuncs.com/my-key?key=value"
+            )
         }
     }
 
     @Test
-    fun usePathAddressingMode() {
+    fun usePathAddressingMode() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1144,13 +1098,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "https://oss-cn-hangzhou.aliyuncs.com/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "https://oss-cn-hangzhou.aliyuncs.com/?key=value")
         }
 
         // bucket
@@ -1167,16 +1119,14 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.url,
-                    "https://oss-cn-hangzhou.aliyuncs.com/my-bucket/?key=value"
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.url,
+                "https://oss-cn-hangzhou.aliyuncs.com/my-bucket/?key=value"
+            )
         }
 
         // bucket & key
@@ -1194,21 +1144,19 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.url,
-                    "https://oss-cn-hangzhou.aliyuncs.com/my-bucket/my-key?key=value"
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.url,
+                "https://oss-cn-hangzhou.aliyuncs.com/my-bucket/my-key?key=value"
+            )
         }
     }
 
     @Test
-    fun useCNameAddressingMode() {
+    fun useCNameAddressingMode() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1232,13 +1180,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/?key=value")
         }
 
         // bucket
@@ -1255,13 +1201,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/?key=value")
         }
 
         // bucket & key
@@ -1279,18 +1223,16 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/my-key%2B123?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://www.cname.com/my-key%2B123?key=value")
         }
     }
 
     @Test
-    fun useIpEndpoint() {
+    fun useIpEndpoint() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1313,13 +1255,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://192.168.1.1:8080/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://192.168.1.1:8080/?key=value")
         }
 
         // bucket
@@ -1336,13 +1276,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://192.168.1.1:8080/my-bucket/?key=value")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://192.168.1.1:8080/my-bucket/?key=value")
         }
 
         // bucket & key
@@ -1360,21 +1298,19 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key" to "value")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(
-                    mockHandler.lastRequest!!.url,
-                    "http://192.168.1.1:8080/my-bucket/my-key%2B123?key=value"
-                )
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(
+                mockHandler.lastRequest!!.url,
+                "http://192.168.1.1:8080/my-bucket/my-key%2B123?key=value"
+            )
         }
     }
 
     @Test
-    fun useNornalEndpointWithQuery() {
+    fun useNornalEndpointWithQuery() = runTest {
         val mockHandler = MockHttpClient()
 
         var config = ClientConfiguration().apply {
@@ -1398,13 +1334,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://my-bucket.www.test.com/?key1=value1")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://my-bucket.www.test.com/?key1=value1")
         }
 
         // path
@@ -1429,13 +1363,11 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://www.test.com/my-bucket/?key1=value1")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://www.test.com/my-bucket/?key1=value1")
         }
 
         // cname
@@ -1461,18 +1393,16 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("key1" to "value1")
             }
 
-            runTest {
-                val output = client.execute(input, OperationOptions.Default)
-                assertNotNull(mockHandler.requests)
-                assertEquals(1, mockHandler.requests!!.size)
-                assertEquals(200, output.statusCode)
-                assertContains(mockHandler.lastRequest!!.url, "http://www.test.com/my-key%2B123/1.txt?key1=value1")
-            }
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+            assertContains(mockHandler.lastRequest!!.url, "http://www.test.com/my-key%2B123/1.txt?key1=value1")
         }
     }
 
     @Test
-    fun returnsServiceExceptionNormal() {
+    fun returnsServiceExceptionNormal() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1516,28 +1446,26 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("NoSuchBucket", se.errorCode)
-                    assertEquals("The specified bucket does not exist.", se.errorMessage)
-                    assertEquals("5C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("0015-00000101", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("NoSuchBucket", se.errorCode)
+                assertEquals("The specified bucket does not exist.", se.errorMessage)
+                assertEquals("5C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("0015-00000101", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionInHeader() {
+    fun returnsServiceExceptionInHeader() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1582,28 +1510,26 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("NoSuchBucket", se.errorCode)
-                    assertEquals("The specified bucket does not exist.", se.errorMessage)
-                    assertEquals("5C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("0015-00000101", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("NoSuchBucket", se.errorCode)
+                assertEquals("The specified bucket does not exist.", se.errorMessage)
+                assertEquals("5C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("0015-00000101", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionEmptyBody() {
+    fun returnsServiceExceptionEmptyBody() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1639,28 +1565,26 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                    assertEquals("Empty body", se.errorMessage)
-                    assertEquals("5C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("0015-00000101", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
+                assertEquals("Empty body", se.errorMessage)
+                assertEquals("5C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("0015-00000101", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionNotErrorFormat() {
+    fun returnsServiceExceptionNotErrorFormat() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1704,28 +1628,26 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                    assertContains(se.errorMessage, "Not found tag <Error>, part response body ")
-                    assertEquals("6C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
+                assertContains(se.errorMessage, "Not found tag <Error>, part response body ")
+                assertEquals("6C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionNotXmlFormat() {
+    fun returnsServiceExceptionNotXmlFormat() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1769,28 +1691,26 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                    assertContains(se.errorMessage, "Failed to parse xml from response body, part response body")
-                    assertEquals("6C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
+                assertContains(se.errorMessage, "Failed to parse xml from response body, part response body")
+                assertEquals("6C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionComplexErrorFormat() {
+    fun returnsServiceExceptionComplexErrorFormat() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1839,29 +1759,27 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("NoSuchBucket", se.errorCode)
-                    assertContains(se.errorMessage, "The specified bucket does not exist.")
-                    assertEquals("5C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("0015-00000101", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                    assertEquals("", se.errorFields["InnerError"])
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("NoSuchBucket", se.errorCode)
+                assertContains(se.errorMessage, "The specified bucket does not exist.")
+                assertEquals("5C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("0015-00000101", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
+                assertEquals("", se.errorFields["InnerError"])
             }
         }
     }
 
     @Test
-    fun returnsServiceExceptionNullBody() {
+    fun returnsServiceExceptionNullBody() = runTest {
         val mockHandler = MockHttpClient()
 
         val config = ClientConfiguration().apply {
@@ -1894,22 +1812,20 @@ class ClientImplMockTest {
                 parameters = mutableMapOf("acl" to "")
             }
 
-            runTest {
-                try {
-                    client.execute(input, OperationOptions.Default)
-                    assertFails { "should not here" }
-                } catch (e: OperationException) {
-                    assertNotNull(mockHandler.requests)
-                    assertEquals(1, mockHandler.requests!!.size)
-                    val se = ServiceException.asCause(e)
-                    assertNotNull(se)
-                    assertEquals(404, se.statusCode)
-                    assertEquals("BadErrorResponse", se.errorCode)
-                    assertContains(se.errorMessage, "Empty body")
-                    assertEquals("6C3D9175B6FC201293AD****", se.requestId)
-                    assertEquals("", se.ec)
-                    assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
-                }
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: OperationException) {
+                assertNotNull(mockHandler.requests)
+                assertEquals(1, mockHandler.requests!!.size)
+                val se = ServiceException.asCause(e)
+                assertNotNull(se)
+                assertEquals(404, se.statusCode)
+                assertEquals("BadErrorResponse", se.errorCode)
+                assertContains(se.errorMessage, "Empty body")
+                assertEquals("6C3D9175B6FC201293AD****", se.requestId)
+                assertEquals("", se.ec)
+                assertEquals("Fri, 24 Feb 2017 03:15:40 GMT", se.timestamp)
             }
         }
     }
