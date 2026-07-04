@@ -1,5 +1,7 @@
 package com.aliyun.kotlin.sdk.service.oss2.credentials
 
+import com.aliyun.kotlin.sdk.service.oss2.internal.getPlatformEnv
+
 /**
  * Environment Variable Credentials Provider Class
  */
@@ -15,9 +17,9 @@ public class EnvironmentVariableCredentialsProvider : CredentialsProvider {
      * @throws IllegalArgumentException If any required environment variables (OSS_ACCESS_KEY_ID or OSS_ACCESS_KEY_SECRET) are missing
      */
     init {
-        var accessKeyId = System.getenv("OSS_ACCESS_KEY_ID") ?: ""
-        var accessKeySecret = System.getenv("OSS_ACCESS_KEY_SECRET") ?: ""
-        val securityToken = System.getenv("OSS_SESSION_TOKEN")
+        var accessKeyId = getPlatformEnv("OSS_ACCESS_KEY_ID") ?: ""
+        var accessKeySecret = getPlatformEnv("OSS_ACCESS_KEY_SECRET") ?: ""
+        val securityToken = getPlatformEnv("OSS_SESSION_TOKEN")
 
         this.credentials = Credentials(accessKeyId, accessKeySecret, securityToken)
     }

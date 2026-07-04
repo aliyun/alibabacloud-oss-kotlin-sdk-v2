@@ -6,7 +6,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
-import java.security.InvalidParameterException
 
 internal abstract class StreamingXmlDecoder(
     override val serializersModule: SerializersModule
@@ -72,7 +71,7 @@ internal class StreamingXmlClassDecoder(
 ) : StreamingXmlDecoder(serializersModule) {
 
     override fun decodeString(): String {
-        return node.text ?: throw InvalidParameterException("")
+        return node.text ?: throw IllegalArgumentException("")
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeDecoder {

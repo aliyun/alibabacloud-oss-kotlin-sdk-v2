@@ -19,9 +19,9 @@ internal object InetAddressUtils {
     // Max hex digits in each IPv6 group
     private const val IPV6_MAX_HEX_DIGITS_PER_GROUP = 4
 
-    private val DIGITS_PATTERN = Regex("\\d{1,3}").toPattern()
+    private val DIGITS_PATTERN = Regex("\\d{1,3}")
 
-    private val ID_CHECK_PATTERN = Regex("[^\\s/%]+").toPattern()
+    private val ID_CHECK_PATTERN = Regex("[^\\s/%]+")
 
     /**
      * Checks if the specified string is a valid IPv4 or IPv6 address.
@@ -77,7 +77,7 @@ internal object InetAddressUtils {
             return false // can only have one prefix specifier
         }
         if (parts.size == 2) {
-            if (!DIGITS_PATTERN.matcher(parts[1]).matches()) {
+            if (!DIGITS_PATTERN.matches(parts[1])) {
                 return false // not a valid number
             }
             val bits = parts[1].toInt() // cannot fail because of RE check
@@ -89,7 +89,7 @@ internal object InetAddressUtils {
         parts = parts[0].split("%".toRegex()).toTypedArray()
         // The id syntax is implementation independent, but it presumably cannot allow:
         // whitespace, '/' or '%'
-        if ((parts.size > 2) || (parts.size == 2 && !ID_CHECK_PATTERN.matcher(parts[1]).matches())) {
+        if ((parts.size > 2) || (parts.size == 2 && !ID_CHECK_PATTERN.matches(parts[1]))) {
             return false // invalid id
         }
         inet6Address = parts[0]
@@ -163,16 +163,12 @@ internal object InetAddressUtils {
         if (value == null) {
             return null
         }
-        val pattern = Regex(IPV4_REGEX).toPattern()
-        val matcher = pattern.matcher(value)
-        if (matcher.matches()) {
-            val count = matcher.groupCount()
-            val groups = arrayOfNulls<String>(count)
-            for (j in 0..<count) {
-                groups[j] = matcher.group(j + 1)
-            }
-            return groups
+        val match = Regex(IPV4_REGEX).matchEntire(value) ?: return null
+        val count = match.groupValues.size - 1
+        val groups = arrayOfNulls<String>(count)
+        for (j in 0..<count) {
+            groups[j] = match.groupValues[j + 1]
         }
-        return null
+        return groups
     }
 }

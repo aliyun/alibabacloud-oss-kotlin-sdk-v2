@@ -1,6 +1,6 @@
 package com.aliyun.kotlin.sdk.service.oss2.types
 
-import kotlinx.coroutines.Dispatchers
+import com.aliyun.kotlin.sdk.service.oss2.internal.ioDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -80,7 +80,7 @@ public sealed class ByteStream {
  */
 public suspend fun ByteStream.toByteArray(): ByteArray = when (val stream = this) {
     is ByteStream.Buffer -> stream.bytes()
-    is ByteStream.SourceStream -> stream.readFrom().buffered().readByteArray()
+    is ByteStream.SourceStream -> stream.readFrom().buffered().use { it.readByteArray() }
 }
 
 public fun ByteStream.cancel() {
@@ -100,7 +100,7 @@ public fun ByteStream.cancel() {
  */
 public fun ByteStream.toFlow(bufferSize: Long = 8192): Flow<ByteArray> = when (this) {
     is ByteStream.Buffer -> flowOf(bytes())
-    is ByteStream.SourceStream -> readFrom().toFlow(bufferSize).flowOn(Dispatchers.IO)
+    is ByteStream.SourceStream -> readFrom().toFlow(bufferSize).flowOn(ioDispatcher)
 }
 
 private fun RawSource.toFlow(bufferSize: Long): Flow<ByteArray> {

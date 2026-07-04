@@ -1,5 +1,7 @@
 package com.aliyun.kotlin.sdk.service.oss2.exceptions
 
+import kotlin.reflect.KClass
+
 public class OperationException(
     public val opName: String,
     cause: Throwable? = null
@@ -8,17 +10,14 @@ public class OperationException(
     cause
 ) {
 
-    public fun <T> contains(clz: Class<T?>?): Throwable? {
+    public fun contains(clz: KClass<out Throwable>): Throwable? {
         var next = this.cause
-        do {
-            if (next == null) {
-                break
-            }
-            if (next.javaClass == clz) {
+        while (next != null) {
+            if (next::class == clz) {
                 break
             }
             next = next.cause
-        } while (true)
+        }
         return next
     }
 }
