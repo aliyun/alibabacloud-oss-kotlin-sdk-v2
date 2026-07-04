@@ -40,6 +40,12 @@ kotlin {
         browser()
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        nodejs()
+        browser()
+    }
+
     jvmToolchain(17)
 
     applyDefaultHierarchyTemplate()
@@ -79,6 +85,7 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.js)
                 implementation(libs.kotlincrypto.hash.md)
                 implementation(libs.kotlincrypto.hash.sha1)
                 implementation(libs.kotlincrypto.hash.sha2)
@@ -89,9 +96,10 @@ kotlin {
 
         val jsMain by getting {
             dependsOn(nonJvmCommonMain)
-            dependencies {
-                implementation(libs.ktor.client.js)
-            }
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(nonJvmCommonMain)
         }
 
         commonTest.dependencies {

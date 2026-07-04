@@ -12,7 +12,8 @@ kotlin {
 
     androidTarget()
     jvm()
-    js {
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
         browser {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
@@ -41,7 +42,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
         }
 
-        jsMain.dependencies {
+        wasmJsMain.dependencies {
             implementation(libs.ktor.client.js)
         }
 

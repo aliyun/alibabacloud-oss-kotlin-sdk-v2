@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlinx.browser.document
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
@@ -42,6 +43,7 @@ actual fun FilePicker(
     }
 }
 
+@OptIn(ExperimentalWasmJsInterop::class)
 private fun pickFile(onRead: (name: String, bytes: ByteArray) -> Unit) {
     val input = document.createElement("input") as HTMLInputElement
     input.type = "file"
@@ -61,6 +63,7 @@ private fun pickFile(onRead: (name: String, bytes: ByteArray) -> Unit) {
     input.click()
 }
 
+@OptIn(ExperimentalWasmJsInterop::class)
 private fun ArrayBuffer.toByteArray(): ByteArray {
     val view = Int8Array(this)
     return ByteArray(view.length) { view[it] }
