@@ -32,6 +32,7 @@ class ClientMiscTest: TestBase() {
             method = "PUT"
             this.bucket = bucket
             this.key = key
+            headers = mutableMapOf("Content-Type" to "application/octet-stream")
             body = ByteStream.fromString("Hello oss.")
         })
         assertEquals(200, putResult.statusCode)

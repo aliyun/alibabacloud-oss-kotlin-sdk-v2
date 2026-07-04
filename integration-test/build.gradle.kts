@@ -15,12 +15,15 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.ktor.client.okhttp)
+            implementation(libs.ktor.client.core)
             implementation(project(":oss-sdk"))
             implementation(project(":oss-sdk-extension"))
             implementation(kotlin("test"))
         }
 
+        jvmTest.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
     }
 }
 

@@ -7,27 +7,19 @@ import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
 import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CompleteMultipartUpload
 import com.aliyun.kotlin.sdk.service.oss2.models.CompleteMultipartUploadRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.InitiateMultipartUploadRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListMultipartUploadsRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
 import com.aliyun.kotlin.sdk.service.oss2.models.ListPartsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.Part
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.UploadPartCopyRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.UploadPartRequest
 import com.aliyun.kotlin.sdk.service.oss2.paginator.PaginatorOptions
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listMultipartUploadsPaginator
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listPartsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.progress.ProgressListener
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -37,47 +29,8 @@ import kotlin.test.assertTrue
 
 class ObjectMultipartTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                bucket = bucketName
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.listMultipartUploadsPaginator(ListMultipartUploadsRequest {
-            bucket = bucketName
-        }).collect {
-            it.uploads?.forEach { obj ->
-                defaultClient.abortMultipartUpload(AbortMultipartUploadRequest {
-                    bucket = bucketName
-                    key = obj.key
-                    uploadId = obj.uploadId
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testInitiateMultipartUpload() = runTest {
+    fun testInitiateMultipartUpload() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -89,7 +42,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testInitiateMultipartUploadWithForbidOverwrite() = runTest {
+    fun testInitiateMultipartUploadWithForbidOverwrite() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -109,7 +62,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testInitiateMultipartUploadWithStorageClass() = runTest {
+    fun testInitiateMultipartUploadWithStorageClass() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -121,7 +74,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testInitiateMultipartUploadWithTagging() = runTest {
+    fun testInitiateMultipartUploadWithTagging() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -133,7 +86,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testInitiateMultipartUploadWithException() = runTest {
+    fun testInitiateMultipartUploadWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.initiateMultipartUpload(InitiateMultipartUploadRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -152,7 +105,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPart() = runTest {
+    fun testUploadPart() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -171,7 +124,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartWithCrc() = runTest {
+    fun testUploadPartWithCrc() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
         OSSClient.create(ClientConfiguration.loadDefault().apply{
             region = OSS_TEST_REGION
@@ -197,7 +150,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartWithProgress() = runTest {
+    fun testUploadPartWithProgress() = bucketTest { bucketName ->
         val key = randomObjectKey()
         var totalBytesTransferred: Long = 0
 
@@ -212,7 +165,7 @@ class ObjectMultipartTest: TestBase() {
             partNumber = 1
             body = ByteStream.fromSource(Buffer().also { it0 ->
                 repeat(1024) {
-                    it0.write("Hello oss.".toByteArray())
+                    it0.write("Hello oss.".encodeToByteArray())
                 }
             }, 10240)
             progressListener = ProgressListener { bytesSent, totalBytesSent, totalBytesExpectedToSend ->
@@ -225,7 +178,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartWithException() = runTest {
+    fun testUploadPartWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.uploadPart(UploadPartRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -259,7 +212,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testCompleteMultipartUpload() = runTest {
+    fun testCompleteMultipartUpload() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -288,7 +241,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testCompleteMultipartUploadWithForbidOverwrite() = runTest {
+    fun testCompleteMultipartUploadWithForbidOverwrite() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -321,7 +274,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testCompleteMultipartUploadWithException() = runTest {
+    fun testCompleteMultipartUploadWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.completeMultipartUpload(CompleteMultipartUploadRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -347,7 +300,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartCopy() = runTest {
+    fun testUploadPartCopy() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
         val target = randomObjectKey()
 
@@ -372,7 +325,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartCopyWithCopySourceIfMatch() = runTest {
+    fun testUploadPartCopyWithCopySourceIfMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val target = randomObjectKey()
 
@@ -401,7 +354,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testUploadPartCopyWithCopySourceIfNoneMatch() = runTest {
+    fun testUploadPartCopyWithCopySourceIfNoneMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val target = randomObjectKey()
 
@@ -431,7 +384,7 @@ class ObjectMultipartTest: TestBase() {
 
 //    @OptIn(ExperimentalTime::class)
 //    @Test
-//    fun testUploadPartCopyWithCopySourceIfUnmodifiedSince() = runTest {
+//    fun testUploadPartCopyWithCopySourceIfUnmodifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //        val target = randomObjectKey()
 //        val date = Clock.System.now().format(DateTimeComponents.Formats.RFC_1123)
@@ -463,7 +416,7 @@ class ObjectMultipartTest: TestBase() {
 //
 //    @OptIn(ExperimentalTime::class)
 //    @Test
-//    fun testUploadPartCopyWithCopySourceIfModifiedSince() = runTest {
+//    fun testUploadPartCopyWithCopySourceIfModifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //        val target = randomObjectKey()
 //
@@ -493,7 +446,7 @@ class ObjectMultipartTest: TestBase() {
 //    }
 
     @Test
-    fun testUploadPartCopyWithException() = runTest {
+    fun testUploadPartCopyWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.uploadPartCopy(UploadPartCopyRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -527,7 +480,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testAbortMultipartUpload() = runTest {
+    fun testAbortMultipartUpload() = bucketTest { bucketName ->
         val key: String = randomObjectKey()
 
         val result = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -543,7 +496,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testAbortMultipartUploadWithException() = runTest {
+    fun testAbortMultipartUploadWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.abortMultipartUpload(AbortMultipartUploadRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -569,7 +522,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploads() = runTest {
+    fun testListMultipartUploads() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         for (i in 1..10) {
@@ -592,7 +545,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsWithMaxUploads() = runTest {
+    fun testListMultipartUploadsWithMaxUploads() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         for (i in 1..10) {
@@ -616,7 +569,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsWithPrefix() = runTest {
+    fun testListMultipartUploadsWithPrefix() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         for (i in 1..10) {
@@ -641,7 +594,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsWithDelimiter() = runTest {
+    fun testListMultipartUploadsWithDelimiter() = bucketTest { bucketName ->
 
         for (i in 1..10) {
             defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -660,7 +613,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsWithKeyMarker() = runTest {
+    fun testListMultipartUploadsWithKeyMarker() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         for (i in 1..10) {
@@ -697,7 +650,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsPaginator() = runTest {
+    fun testListMultipartUploadsPaginator() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         for (i in 1..10) {
@@ -718,7 +671,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListMultipartUploadsWithException() = runTest {
+    fun testListMultipartUploadsWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.listMultipartUploads(ListMultipartUploadsRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -731,7 +684,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListParts() = runTest {
+    fun testListParts() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -767,7 +720,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListPartsWithMaxParts() = runTest {
+    fun testListPartsWithMaxParts() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -804,7 +757,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListPartsWithPartNumberMarker() = runTest {
+    fun testListPartsWithPartNumberMarker() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -857,7 +810,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListPartsPaginator() = runTest {
+    fun testListPartsPaginator() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -886,7 +839,7 @@ class ObjectMultipartTest: TestBase() {
     }
 
     @Test
-    fun testListPartsWithException() = runTest {
+    fun testListPartsWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.listParts(ListPartsRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 

@@ -2,75 +2,47 @@ package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CompleteMultipartUploadRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.HeadObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.InitiateMultipartUploadRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListMultipartUploadsRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.UploadPartRequest
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listMultipartUploadsPaginator
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.test.runTest
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
+import io.ktor.client.HttpClient
+import io.ktor.client.request.header
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpMethod
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class PresignerTest: TestBase() {
 
-    private val bucketName = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listMultipartUploadsPaginator(ListMultipartUploadsRequest {
-            bucket = bucketName
-        }).collect {
-            it.uploads?.forEach { upload ->
-                defaultClient.abortMultipartUpload(AbortMultipartUploadRequest {
-                    bucket = bucketName
-                    key = upload.key
-                    uploadId = upload.uploadId
-                })
+    private suspend fun sendPresigned(
+        method: String,
+        url: String,
+        signedHeaders: Map<String, String>,
+        body: Any? = null,
+    ): HttpResponse = HttpClient().use { client ->
+        client.request(url) {
+            this.method = HttpMethod.parse(method)
+            signedHeaders.forEach { (k, v) -> header(k, v) }
+            if (body != null) {
+                setBody(body)
             }
         }
-        defaultClient.listObjectsV2Paginator(ListObjectsV2Request {
-            bucket = bucketName
-        }).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
     }
 
     @Test
-    fun testPresignPutObject() = runTest {
+    fun testPresignPutObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val result = defaultClient.presign(PutObjectRequest {
             bucket = bucketName
             this.key = key
+            addHeader("Content-Type", "application/octet-stream")
         })
         assertEquals("PUT", result.method)
         assertTrue(result.url.contains("x-oss-signature-version="))
@@ -78,16 +50,12 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, "Hello oss.".toByteArray().toRequestBody())
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
+        val response = sendPresigned(result.method, result.url, result.signedHeaders, "Hello oss.".encodeToByteArray())
+        assertEquals(200, response.status.value)
     }
 
     @Test
-    fun testPresignGetObject() = runTest {
+    fun testPresignGetObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -106,17 +74,13 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, null)
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
-        assertEquals("Hello oss.", response.body.string())
+        val response = sendPresigned(result.method, result.url, result.signedHeaders)
+        assertEquals(200, response.status.value)
+        assertEquals("Hello oss.", response.bodyAsText())
     }
 
     @Test
-    fun testPresignHeadObject() = runTest {
+    fun testPresignHeadObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -135,21 +99,18 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, null)
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
+        val response = sendPresigned(result.method, result.url, result.signedHeaders)
+        assertEquals(200, response.status.value)
     }
 
     @Test
-    fun testPresignInitiateMultipartUpload() = runTest {
+    fun testPresignInitiateMultipartUpload() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val result = defaultClient.presign(InitiateMultipartUploadRequest {
             bucket = bucketName
             this.key = key
+            addHeader("Content-Type", "application/octet-stream")
         })
         assertEquals("POST", result.method)
         assertTrue(result.url.contains("x-oss-signature-version="))
@@ -157,16 +118,12 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, RequestBody.EMPTY)
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
+        val response = sendPresigned(result.method, result.url, result.signedHeaders, ByteArray(0))
+        assertEquals(200, response.status.value)
     }
 
     @Test
-    fun testPresignUploadPart() = runTest {
+    fun testPresignUploadPart() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -178,6 +135,7 @@ class PresignerTest: TestBase() {
             this.key = key
             uploadId = initResult.uploadId
             partNumber = 1
+            addHeader("Content-Type", "application/octet-stream")
         })
         assertEquals("PUT", result.method)
         assertTrue(result.url.contains("x-oss-signature-version="))
@@ -185,16 +143,12 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, "Hello oss.".toByteArray().toRequestBody())
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
+        val response = sendPresigned(result.method, result.url, result.signedHeaders, "Hello oss.".encodeToByteArray())
+        assertEquals(200, response.status.value)
     }
 
     @Test
-    fun testPresignCompleteMultipartUpload() = runTest {
+    fun testPresignCompleteMultipartUpload() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -212,6 +166,7 @@ class PresignerTest: TestBase() {
             bucket = bucketName
             this.key = key
             uploadId = initResult.uploadId
+            addHeader("Content-Type", "application/octet-stream")
         })
         assertEquals("POST", result.method)
         assertTrue(result.url.contains("x-oss-signature-version="))
@@ -219,16 +174,17 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, "<CompleteMultipartUpload><Part><PartNumber>1</PartNumber><ETag>${partResult.eTag}</ETag></Part></CompleteMultipartUpload>".toRequestBody())
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(200, response.code)
+        val response = sendPresigned(
+            result.method,
+            result.url,
+            result.signedHeaders,
+            "<CompleteMultipartUpload><Part><PartNumber>1</PartNumber><ETag>${partResult.eTag}</ETag></Part></CompleteMultipartUpload>".encodeToByteArray(),
+        )
+        assertEquals(200, response.status.value)
     }
 
     @Test
-    fun testPresignAbortMultipartUpload() = runTest {
+    fun testPresignAbortMultipartUpload() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val initResult = defaultClient.initiateMultipartUpload(InitiateMultipartUploadRequest {
@@ -239,6 +195,7 @@ class PresignerTest: TestBase() {
             bucket = bucketName
             this.key = key
             uploadId = initResult.uploadId
+            addHeader("Content-Type", "application/octet-stream")
         })
         assertEquals("DELETE", result.method)
         assertTrue(result.url.contains("x-oss-signature-version="))
@@ -246,11 +203,7 @@ class PresignerTest: TestBase() {
         assertTrue(result.url.contains("x-oss-credential="))
         assertTrue(result.url.contains("x-oss-signature="))
 
-        val response = OkHttpClient.Builder().build().newCall(Request.Builder().apply {
-            method(result.method, "Hello oss.".toByteArray().toRequestBody())
-            url(result.url)
-            result.signedHeaders.forEach { (k, v) -> header(k, v) }
-        }.build()).execute()
-        assertEquals(204, response.code)
+        val response = sendPresigned(result.method, result.url, result.signedHeaders, "Hello oss.".encodeToByteArray())
+        assertEquals(204, response.status.value)
     }
 }
