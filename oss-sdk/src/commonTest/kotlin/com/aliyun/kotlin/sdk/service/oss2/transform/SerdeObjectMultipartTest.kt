@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class SerdeObjectMultipartTest {
 
@@ -389,5 +390,39 @@ class SerdeObjectMultipartTest {
         assertEquals("2012-02-23T07:02:03.000Z", result.parts?.get(2)?.lastModified)
         assertEquals("\"7265F4D211B56873A381D321F586****\"", result.parts?.get(2)?.eTag)
         assertEquals(1024, result.parts?.get(2)?.size)
+    }
+
+    @Test
+    fun testFromXmlListPartResultWithHashCrc64ecma() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ListPartsResult xmlns="http://doc.oss-cn-hangzhou.aliyuncs.com">
+            <Bucket>multipart_upload</Bucket>
+            <Key>multipart.data</Key>
+            <UploadId>0004B999EF5A239BB9138C6227D6****</UploadId>
+            <NextPartNumberMarker>2</NextPartNumberMarker>
+            <MaxParts>1000</MaxParts>
+            <IsTruncated>false</IsTruncated>
+            <Part>
+            <PartNumber>1</PartNumber>
+            <LastModified>2012-02-23T07:01:34.000Z</LastModified>
+            <ETag>"3349DC700140D7F86A0784842780****"</ETag>
+            <Size>6291456</Size>
+            <HashCrc64ecma>12345678901234567890</HashCrc64ecma>
+            </Part>
+            <Part>
+            <PartNumber>2</PartNumber>
+            <LastModified>2012-02-23T07:01:12.000Z</LastModified>
+            <ETag>"3349DC700140D7F86A0784842780****"</ETag>
+            <Size>1024</Size>
+            </Part>
+            </ListPartsResult>
+        """.trimIndent()
+        val result = fromXmlListPartResult(xml.toByteArray())
+        assertEquals(2, result.parts?.size)
+        // part with HashCrc64ecma element
+        assertEquals("12345678901234567890", result.parts?.get(0)?.hashCrc64ecma)
+        // part without HashCrc64ecma element stays null
+        assertNull(result.parts?.get(1)?.hashCrc64ecma)
     }
 }

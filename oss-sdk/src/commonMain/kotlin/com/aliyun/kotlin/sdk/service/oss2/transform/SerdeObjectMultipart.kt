@@ -218,6 +218,9 @@ internal fun fromXmlListPartResult(data: ByteArray?): ListPartResult {
                             "Size" -> {
                                 upload.size = it2.value.first().text?.toLong()
                             }
+                            "HashCrc64ecma" -> {
+                                upload.hashCrc64ecma = it2.value.first().text
+                            }
                         }
                     }
                     parts.add(upload.build())
