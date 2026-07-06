@@ -83,9 +83,16 @@ public sealed class ByteStream {
         public fun fromBytes(bytes: ByteArray): ByteStream = ByteArrayContent(bytes)
 
         /**
-         * Create a [ByteStream] from a [Path]
+         * Create a [ByteStream] from a [Path].
          */
         public fun fromFile(path: Path): ByteStream = FileContent(path)
+
+        /**
+         * Create a [ByteStream] from a [Path], limited to the byte range `[offset, offset + length)`.
+         * [length] of `null` reads to the end of the file.
+         */
+        public fun fromFile(path: Path, offset: Long, length: Long? = null): ByteStream =
+            FileContent(path, offset, length)
     }
 }
 

@@ -100,11 +100,26 @@ kotlin {
 
         val wasmJsMain by getting {
             dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
         }
 
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)
             implementation(kotlin("test"))
+        }
+
+        val nonJvmCommonTest by creating {
+            dependsOn(commonTest.get())
+        }
+
+        val jsTest by getting {
+            dependsOn(nonJvmCommonTest)
+        }
+
+        val wasmJsTest by getting {
+            dependsOn(nonJvmCommonTest)
         }
 
         jvmTest.dependencies {
