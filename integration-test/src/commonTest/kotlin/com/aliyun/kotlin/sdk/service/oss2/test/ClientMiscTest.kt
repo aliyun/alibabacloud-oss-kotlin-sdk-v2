@@ -3,9 +3,6 @@ package com.aliyun.kotlin.sdk.service.oss2.test
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketAclRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectMetaRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
@@ -20,12 +17,8 @@ import kotlin.test.assertTrue
 class ClientMiscTest: TestBase() {
 
     @Test
-    fun testInvokeOperation() = runTest {
-        val bucket = randomBucketName()
+    fun testInvokeOperation() = bucketTest { bucket ->
         val key = randomObjectKey()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
 
         // put object
         val putResult = defaultClient.invokeOperation(OperationInput {
@@ -61,46 +54,38 @@ class ClientMiscTest: TestBase() {
             this.key = key
         })
         assertEquals(204, deleteResult.statusCode)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
     fun testDoesBucketExist() = runTest {
         val bucket = randomBucketName()
+        try {
+            // bucket is not exist
+            assertEquals(false, defaultClient.doesBucketExist(bucket))
 
-        // bucket is not exist
-        assertEquals(false, defaultClient.doesBucketExist(bucket))
+            // bucket is exist
+            defaultClient.putBucket(PutBucketRequest {
+                this.bucket = bucket
+            })
+            assertEquals(true, defaultClient.doesBucketExist(bucket))
 
-        // bucket is exist
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-        assertEquals(true, defaultClient.doesBucketExist(bucket))
-
-        // throw exception
-        val exception = assertFails {
-            invalidClient.doesBucketExist(bucket)
+            // throw exception
+            val exception = assertFails {
+                invalidClient.doesBucketExist(bucket)
+            }
+            assertTrue(exception.cause is ServiceException)
+            assertEquals(403, (exception.cause as ServiceException).statusCode)
+        } finally {
+            runCatching {
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = bucket })
+            }
         }
-        assertTrue(exception.cause is ServiceException)
-        assertEquals(403, (exception.cause as ServiceException).statusCode)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testDoesObjectExist() = runTest {
-        val bucket = randomBucketName()
+    fun testDoesObjectExist() = bucketTest { bucket ->
         val key = randomObjectKey()
 
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -124,14 +109,5 @@ class ClientMiscTest: TestBase() {
         }
         assertTrue(exception.cause is ServiceException)
         assertEquals(403, (exception.cause as ServiceException).statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 }

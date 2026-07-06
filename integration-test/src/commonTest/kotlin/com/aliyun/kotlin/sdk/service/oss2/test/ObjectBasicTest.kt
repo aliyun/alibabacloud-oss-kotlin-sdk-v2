@@ -9,7 +9,6 @@ import com.aliyun.kotlin.sdk.service.oss2.models.AppendObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CleanRestoredObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CopyObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.Delete
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteMultipleObjectsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ObjectIdentifier
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
@@ -19,7 +18,6 @@ import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectTaggingRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.HeadObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.JobParameters
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.RestoreObjectRequest
@@ -944,12 +942,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteObjectWithVersionId() = bucketTest { bucketName ->
+    fun testDeleteObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -974,10 +968,6 @@ class ObjectBasicTest: TestBase() {
             })
         }
         assertEquals(404, (exception.cause as ServiceException).statusCode)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -1107,12 +1097,8 @@ class ObjectBasicTest: TestBase() {
 //    }
 
     @Test
-    fun testHeadObjectWithVersionId() = bucketTest { bucketName ->
+    fun testHeadObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1131,15 +1117,6 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(200, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -1180,12 +1157,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectMetaWithVersionId() = bucketTest { bucketName ->
+    fun testGetObjectMetaWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1204,15 +1177,6 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(200, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -1276,12 +1240,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testRestoreObjectWithVersionId() = bucketTest { bucketName ->
+    fun testRestoreObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1304,15 +1264,6 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(202, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test

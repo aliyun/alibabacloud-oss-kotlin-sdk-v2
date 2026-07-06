@@ -53,9 +53,15 @@ open class TestBase {
      * afterwards. Setup/teardown must live in the test body because Kotlin/JS does not await
      * suspending `@BeforeTest`/`@AfterTest` hooks.
      */
-    fun bucketTest(block: suspend (bucket: String) -> Unit): TestResult = runTest {
+    fun bucketTest(
+        configure: PutBucketRequest.Builder.() -> Unit = {},
+        block: suspend (bucket: String) -> Unit,
+    ): TestResult = runTest {
         val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest { this.bucket = bucket })
+        defaultClient.putBucket(PutBucketRequest {
+            this.bucket = bucket
+            configure()
+        })
         try {
             block(bucket)
         } finally {
@@ -100,6 +106,7 @@ open class TestBase {
         }).collect {
            it.buckets?.forEach { it0 ->
                 cleanBucket(it0.name!!, it0.region!!)
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = it0.name })
            }
         }
     }
@@ -120,16 +127,6 @@ open class TestBase {
     }
 
     private suspend fun cleanObjects(client: OSSClient, bucketName: String) {
-        client.listObjectsV2Paginator(ListObjectsV2Request {
-            bucket = bucketName
-        }).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
         client.listObjectVersionsPaginator(ListObjectVersionsRequest {
             bucket = bucketName
         }).collect {
@@ -138,6 +135,23 @@ open class TestBase {
                     this.bucket = bucketName
                     this.key = obj.key
                     this.versionId = obj.versionId
+                })
+            }
+            it.deleteMarkers?.forEach { obj ->
+                defaultClient.deleteObject(DeleteObjectRequest {
+                    this.bucket = bucketName
+                    this.key = obj.key
+                    this.versionId = obj.versionId
+                })
+            }
+        }
+        client.listObjectsV2Paginator(ListObjectsV2Request {
+            bucket = bucketName
+        }).collect {
+            it.contents?.forEach { obj ->
+                defaultClient.deleteObject(DeleteObjectRequest {
+                    bucket = bucketName
+                    key = obj.key
                 })
             }
         }

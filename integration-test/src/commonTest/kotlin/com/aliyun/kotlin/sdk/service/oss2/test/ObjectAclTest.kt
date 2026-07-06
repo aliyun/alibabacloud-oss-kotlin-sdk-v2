@@ -1,10 +1,7 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectAclRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectAclRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
@@ -36,12 +33,8 @@ class ObjectAclTest: TestBase() {
     }
 
     @Test
-    fun testPutAndGetObjectAclWithVersionId() = objectTest { bucketName, objectKey ->
-        val bucket = randomBucketName()
+    fun testPutAndGetObjectAclWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -68,15 +61,6 @@ class ObjectAclTest: TestBase() {
         assertEquals("private", result.accessControlPolicy?.accessControlList?.grant)
         assertNotNull(result.accessControlPolicy?.owner?.id)
         assertNotNull(result.accessControlPolicy?.owner?.displayName)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = objectResult.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test

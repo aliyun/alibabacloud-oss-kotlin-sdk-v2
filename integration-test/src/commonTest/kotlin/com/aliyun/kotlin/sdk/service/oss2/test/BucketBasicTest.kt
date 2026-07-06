@@ -3,20 +3,19 @@ package com.aliyun.kotlin.sdk.service.oss2.test
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
 import com.aliyun.kotlin.sdk.service.oss2.models.CreateBucketConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest.Companion.invoke
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketAclRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketInfoRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketLocationRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketStatRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request.Companion.invoke
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -29,59 +28,38 @@ class BucketBasicTest: TestBase() {
     @Test
     fun testPutBucket() = runTest {
         val bucket = randomBucketName()
-
-        val result = defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-        assertEquals(result.statusCode, 200)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
+        try {
+            val result = defaultClient.putBucket(PutBucketRequest {
+                this.bucket = bucket
+            })
+            assertEquals(result.statusCode, 200)
+        } finally {
+            runCatching {
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = bucket })
+            }
+        }
     }
 
     @Test
-    fun testPutBucketWithCreateBucketConfiguration() = runTest {
-        val bucket = randomBucketName()
-
-        val result = defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-            createBucketConfiguration = CreateBucketConfiguration {
-                storageClass = "IA"
-                dataRedundancyType = "ZRS"
-            }
-        })
-        assertEquals(result.statusCode, 200)
-
+    fun testPutBucketWithCreateBucketConfiguration() = bucketTest(configure = {
+        createBucketConfiguration = CreateBucketConfiguration {
+            storageClass = "IA"
+            dataRedundancyType = "ZRS"
+        }
+    }) { bucket ->
         val bucketInfo = defaultClient.getBucketInfo(GetBucketInfoRequest{
             this.bucket = bucket
         }).bucketInfo
         assertEquals("IA", bucketInfo?.bucket?.storageClass)
         assertEquals("ZRS", bucketInfo?.bucket?.dataRedundancyType)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testPutBucketWithAcl() = runTest {
-        val bucket = randomBucketName()
-
-        val result = defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-            acl = "private"
-        })
-        assertEquals(result.statusCode, 200)
-
+    fun testPutBucketWithAcl() = bucketTest(configure = { acl = "private" }) { bucket ->
         val aclResult = defaultClient.getBucketAcl(GetBucketAclRequest {
             this.bucket = bucket
         })
         assertEquals("private", aclResult.accessControlPolicy?.accessControlList?.grant)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -102,15 +80,20 @@ class BucketBasicTest: TestBase() {
     @Test
     fun testDeleteBucket() = runTest {
         val bucket = randomBucketName()
+        try {
+            defaultClient.putBucket(PutBucketRequest {
+                this.bucket = bucket
+            })
 
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
-        val result = defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
-        assertEquals(result.statusCode, 204)
+            val result = defaultClient.deleteBucket(DeleteBucketRequest {
+                this.bucket = bucket
+            })
+            assertEquals(result.statusCode, 204)
+        } finally {
+            runCatching {
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = bucket })
+            }
+        }
     }
 
     @Test
@@ -129,18 +112,9 @@ class BucketBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketStat() = runTest {
-        val bucket = randomBucketName()
-        val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-        defaultClient.putObject(PutObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            body = ByteStream.fromString("Hello oss.")
-        })
+    fun testGetBucketStat() = objectTest { bucket, _ ->
+        // GetBucketStat is not real-time; wait briefly for the stat to propagate.
+        withContext(Dispatchers.Default) { delay(3000) }
 
         val result = defaultClient.getBucketStat(GetBucketStatRequest {
             this.bucket = bucket
@@ -167,22 +141,6 @@ class BucketBasicTest: TestBase() {
         assertEquals(0, result.bucketStat?.multipartUploadCount)
         assertEquals(0, result.bucketStat?.liveChannelCount)
         assertEquals(0, result.bucketStat?.multipartPartCount)
-
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                this.bucket = bucket
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    this.bucket = bucket
-                    this.key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -201,19 +159,7 @@ class BucketBasicTest: TestBase() {
     }
 
     @Test
-    fun testListObjects() = runTest {
-        val bucket = randomBucketName()
-        val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-        defaultClient.putObject(PutObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            body = ByteStream.fromString("Hello oss.")
-        })
-
+    fun testListObjects() = objectTest { bucket, key ->
         val result = defaultClient.listObjects(ListObjectsRequest {
             this.bucket = bucket
         })
@@ -225,72 +171,31 @@ class BucketBasicTest: TestBase() {
         assertEquals(10, result.contents?.first()?.size)
         assertEquals("Standard", result.contents?.first()?.storageClass)
         assertNotNull(result.contents?.first()?.eTag)
-
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                this.bucket = bucket
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    this.bucket = bucket
-                    this.key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsWithMaxKeys() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectsWithMaxKeys() = bucketTest { bucket ->
         val result = defaultClient.listObjects(ListObjectsRequest {
             this.bucket = bucket
             maxKeys = 10
         })
         assertEquals(200, result.statusCode)
         assertEquals(10, result.maxKeys)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsWithPrefix() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectsWithPrefix() = bucketTest { bucket ->
         val result = defaultClient.listObjects(ListObjectsRequest {
             this.bucket = bucket
             prefix = "a/"
         })
         assertEquals(200, result.statusCode)
         assertEquals("a/", result.prefix)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsWithDelimiter() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectsWithDelimiter() = bucketTest { bucket ->
         val key = "file1"
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putObject(PutObjectRequest {
             this.bucket = bucket
             this.key = key
@@ -304,24 +209,11 @@ class BucketBasicTest: TestBase() {
         assertEquals(200, result.statusCode)
         assertEquals("f", result.delimiter)
         assertEquals("f", result.commonPrefixes?.first()?.prefix)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsWithMarker() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectsWithMarker() = bucketTest { bucket ->
         val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         for (i in 0..1) {
             defaultClient.putObject(PutObjectRequest {
                 this.bucket = bucket
@@ -338,22 +230,6 @@ class BucketBasicTest: TestBase() {
         assertEquals(200, result.statusCode)
         assertEquals(key, result.marker)
         assertNotNull(result.nextMarker)
-
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                this.bucket = bucket
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    this.bucket = bucket
-                    this.key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -372,19 +248,7 @@ class BucketBasicTest: TestBase() {
     }
 
     @Test
-    fun testListObjectsV2() = runTest {
-        val bucket = randomBucketName()
-        val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-        defaultClient.putObject(PutObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            body = ByteStream.fromString("Hello oss.")
-        })
-
+    fun testListObjectsV2() = objectTest { bucket, key ->
         val result = defaultClient.listObjectsV2(ListObjectsV2Request {
             this.bucket = bucket
         })
@@ -396,64 +260,31 @@ class BucketBasicTest: TestBase() {
         assertEquals(10, result.contents?.first()?.size)
         assertEquals("Standard", result.contents?.first()?.storageClass)
         assertNotNull(result.contents?.first()?.eTag)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsV2WithMaxKeys() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectsV2WithMaxKeys() = bucketTest { bucket ->
         val result = defaultClient.listObjectsV2(ListObjectsV2Request {
             this.bucket = bucket
             maxKeys = 10
         })
         assertEquals(200, result.statusCode)
         assertEquals(10, result.maxKeys)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsV2WithPrefix() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectsV2WithPrefix() = bucketTest { bucket ->
         val result = defaultClient.listObjectsV2(ListObjectsV2Request {
             this.bucket = bucket
             prefix = "a/"
         })
         assertEquals(200, result.statusCode)
         assertEquals("a/", result.prefix)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsV2WithDelimiter() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectsV2WithDelimiter() = bucketTest { bucket ->
         val key = "file1"
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putObject(PutObjectRequest {
             this.bucket = bucket
             this.key = key
@@ -467,24 +298,11 @@ class BucketBasicTest: TestBase() {
         assertEquals(200, result.statusCode)
         assertEquals("f", result.delimiter)
         assertEquals("f", result.commonPrefixes?.first()?.prefix)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectsV2WithContinuationToken() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectsV2WithContinuationToken() = bucketTest { bucket ->
         val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         for (i in 0..1) {
             defaultClient.putObject(PutObjectRequest {
                 this.bucket = bucket
@@ -508,22 +326,6 @@ class BucketBasicTest: TestBase() {
         })
         assertEquals(200, result.statusCode)
         assertEquals(continuationToken, result.continuationToken)
-
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                this.bucket = bucket
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    this.bucket = bucket
-                    this.key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -542,18 +344,13 @@ class BucketBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketInfo() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-            acl = "private"
-            createBucketConfiguration = CreateBucketConfiguration {
-                storageClass = "IA"
-                dataRedundancyType = "ZRS"
-            }
-        })
-
+    fun testGetBucketInfo() = bucketTest(configure = {
+        acl = "private"
+        createBucketConfiguration = CreateBucketConfiguration {
+            storageClass = "IA"
+            dataRedundancyType = "ZRS"
+        }
+    }) { bucket ->
         val result = defaultClient.getBucketInfo(GetBucketInfoRequest {
             this.bucket = bucket
         })
@@ -573,10 +370,6 @@ class BucketBasicTest: TestBase() {
         assertNotNull(result.bucketInfo?.bucket?.extranetEndpoint)
         assertNotNull(result.bucketInfo?.bucket?.owner?.id)
         assertNotNull(result.bucketInfo?.bucket?.owner?.displayName)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -595,26 +388,17 @@ class BucketBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketLocation() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-            createBucketConfiguration = CreateBucketConfiguration {
-                storageClass = "IA"
-                dataRedundancyType = "ZRS"
-            }
-        })
-
+    fun testGetBucketLocation() = bucketTest(configure = {
+        createBucketConfiguration = CreateBucketConfiguration {
+            storageClass = "IA"
+            dataRedundancyType = "ZRS"
+        }
+    }) { bucket ->
         val result = defaultClient.getBucketLocation(GetBucketLocationRequest {
             this.bucket = bucket
         })
         assertEquals(result.statusCode, 200)
         assertEquals("oss-$OSS_TEST_REGION", result.locationConstraint)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
