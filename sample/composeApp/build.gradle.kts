@@ -21,6 +21,15 @@ kotlin {
         }
         binaries.executable()
     }
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "composeApp"
+            isStatic = true
+        }
+    }
 
     applyDefaultHierarchyTemplate()
 

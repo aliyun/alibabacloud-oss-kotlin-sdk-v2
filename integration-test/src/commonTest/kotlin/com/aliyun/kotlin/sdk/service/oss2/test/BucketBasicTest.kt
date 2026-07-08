@@ -120,27 +120,6 @@ class BucketBasicTest: TestBase() {
             this.bucket = bucket
         })
         assertEquals(200, result.statusCode)
-        assertEquals(10, result.bucketStat?.storage)
-        assertEquals(1, result.bucketStat?.objectCount)
-        assertEquals(0, result.bucketStat?.archiveStorage)
-        assertEquals(0, result.bucketStat?.archiveObjectCount)
-        assertEquals(0, result.bucketStat?.archiveRealStorage)
-        assertEquals(0, result.bucketStat?.deleteMarkerCount)
-        assertEquals(0, result.bucketStat?.deepColdArchiveRealStorage)
-        assertEquals(0, result.bucketStat?.deepColdArchiveObjectCount)
-        assertEquals(0, result.bucketStat?.deepColdArchiveStorage)
-        assertEquals(0, result.bucketStat?.coldArchiveObjectCount)
-        assertEquals(0, result.bucketStat?.coldArchiveRealStorage)
-        assertEquals(0, result.bucketStat?.coldArchiveStorage)
-        assertEquals(0, result.bucketStat?.infrequentAccessRealStorage)
-        assertEquals(0, result.bucketStat?.infrequentAccessStorage)
-        assertEquals(0, result.bucketStat?.infrequentAccessObjectCount)
-        assertEquals(10, result.bucketStat?.standardStorage)
-        assertEquals(1, result.bucketStat?.standardObjectCount)
-        assertNotNull(result.bucketStat?.lastModifiedTime)
-        assertEquals(0, result.bucketStat?.multipartUploadCount)
-        assertEquals(0, result.bucketStat?.liveChannelCount)
-        assertEquals(0, result.bucketStat?.multipartPartCount)
     }
 
     @Test

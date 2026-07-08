@@ -34,8 +34,8 @@ import kotlin.time.ExperimentalTime
 
 open class TestBase {
     companion object {
-        const val BUCKET_NAME_PREFIX: String = "kotlin-sdk-test-bucket-"
-        const val OBJECT_NAME_PREFIX: String = "kotlin-sdk-test-object-"
+        const val BUCKET_NAME_PREFIX: String = "oss-sdk-test-kotlin-bucket-"
+        const val OBJECT_NAME_PREFIX: String = "oss-sdk-test-kotlin-object-"
 
         // OSS test configuration
         val OSS_TEST_REGION: String = testEnv("OSS_TEST_REGION") ?: ""

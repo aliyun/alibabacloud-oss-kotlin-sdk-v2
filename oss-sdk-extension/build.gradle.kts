@@ -32,6 +32,10 @@ kotlin {
         nodejs()
     }
 
+    iosArm64()
+    iosSimulatorArm64()
+    macosArm64()
+
     jvmToolchain(17)
 
     applyDefaultHierarchyTemplate()

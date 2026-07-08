@@ -40,6 +40,10 @@ kotlin {
         browser()
     }
 
+    iosArm64()
+    iosSimulatorArm64()
+    macosArm64()
+
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         nodejs()
@@ -85,7 +89,6 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.js)
                 implementation(libs.kotlincrypto.hash.md)
                 implementation(libs.kotlincrypto.hash.sha1)
                 implementation(libs.kotlincrypto.hash.sha2)
@@ -96,12 +99,23 @@ kotlin {
 
         val jsMain by getting {
             dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
         }
 
         val wasmJsMain by getting {
             dependsOn(nonJvmCommonMain)
             dependencies {
+                implementation(libs.ktor.client.js)
                 implementation(libs.kotlinx.browser)
+            }
+        }
+
+        val appleMain by getting {
+            dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
             }
         }
 

@@ -69,6 +69,7 @@ internal class KtorHttpTransportImpl(config: HttpTransportConfig) : HttpTranspor
                 request = request
             )
         } catch (e: Exception) {
+            e.printStackTrace()
             throw handleException(e)
         }
     }
