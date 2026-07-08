@@ -17,6 +17,10 @@ kotlin {
         }
     }
 
+    iosArm64()
+    iosSimulatorArm64()
+    macosArm64()
+
     applyDefaultHierarchyTemplate()
 
     sourceSets {
@@ -40,6 +44,40 @@ kotlin {
             implementation(libs.ktor.client.js)
         }
     }
+}
+
+fun getFirstAvailableIPhone(): String {
+    val output = providers.exec {
+        commandLine("xcrun", "simctl", "list", "devices", "available")
+    }.standardOutput.asText.get()
+
+    return output.lineSequence()
+        .map { it.trim() }
+        .filter { it.startsWith("iPhone") && it.contains("(") }
+        .map { it.substringBefore(" (").trim() }
+        .firstOrNull()
+        ?: "iPhone 17"
+}
+
+fun getBootedOrFirstIPhone(): String {
+    val booted = providers.exec {
+        commandLine("xcrun", "simctl", "list", "devices", "booted")
+    }.standardOutput.asText.get()
+        .lineSequence()
+        .map { it.trim() }
+        .filter { it.startsWith("iPhone") && it.contains("(") }
+        .map { it.substringBefore(" (").trim() }
+        .firstOrNull()
+
+    if (booted != null) return booted
+
+    return getFirstAvailableIPhone()
+}
+
+
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    standalone.set(false)
+    device.set(getBootedOrFirstIPhone())
 }
 
 android {

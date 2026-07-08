@@ -35,14 +35,12 @@ jobs:
           - name: WasmJs
             os: ubuntu-latest
             tasks: ":oss-sdk:wasmJsTest"
-          # Apple/native targets must build on a macOS runner (Xcode toolchain). Uncomment when the
-          # targets are added to the build; the matrix already carries the runner per platform.
-          # - name: macOS
-          #   os: macos-latest
-          #   tasks: ":oss-sdk:macosArm64Test"
-          # - name: iOS
-          #   os: macos-latest
-          #   tasks: ":oss-sdk:iosSimulatorArm64Test"
+          - name: macOS
+            os: macos-latest
+            tasks: ":oss-sdk:macosArm64Test :oss-sdk-extension:macosArm64Test"
+          - name: iOS
+            os: macos-latest
+            tasks: ":oss-sdk:iosSimulatorArm64Test :oss-sdk-extension:iosSimulatorArm64Test"
 
     steps:
       - name: Checkout
