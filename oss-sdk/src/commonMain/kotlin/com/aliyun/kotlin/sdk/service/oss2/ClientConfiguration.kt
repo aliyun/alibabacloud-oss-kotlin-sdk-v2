@@ -14,6 +14,11 @@ public class ClientConfiguration(
     public var region: String? = null,
 
     /**
+     * The Alibaba Cloud account ID, used by clients that resolve physical bucket names.
+     */
+    public var accountId: String? = null,
+
+    /**
      * The domain names that other services can use to access OSS.
      */
     public var endpoint: String? = null,

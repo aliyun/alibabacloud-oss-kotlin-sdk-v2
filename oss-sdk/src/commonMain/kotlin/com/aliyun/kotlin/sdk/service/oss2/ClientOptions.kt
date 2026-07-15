@@ -6,6 +6,8 @@ import com.aliyun.kotlin.sdk.service.oss2.signer.Signer
 import com.aliyun.kotlin.sdk.service.oss2.transport.HttpTransport
 import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import com.aliyun.kotlin.sdk.service.oss2.types.AuthMethodType
+import com.aliyun.kotlin.sdk.service.oss2.types.BucketNameResolver
+import com.aliyun.kotlin.sdk.service.oss2.types.EndpointProvider
 import com.aliyun.kotlin.sdk.service.oss2.types.FeatureFlagsType
 
 public class ClientOptions(builder: Builder) {
@@ -65,6 +67,16 @@ public class ClientOptions(builder: Builder) {
      */
     public val featureFlags: FeatureFlagsType
 
+    /**
+     * Optional endpoint provider that builds the full request URL.
+     */
+    public val endpointProvider: EndpointProvider?
+
+    /**
+     * Optional resolver that maps a logical bucket name into the actual bucket name.
+     */
+    public val bucketNameResolver: BucketNameResolver?
+
     init {
         this.product = builder.product ?: Defaults.PRODUCT
         this.region = builder.region ?: ""
@@ -77,6 +89,8 @@ public class ClientOptions(builder: Builder) {
         this.httpClient = requireNotNull(builder.httpClient) { "httpClient is null" }
         this.additionalHeaders = builder.additionalHeaders ?: listOf()
         this.featureFlags = builder.featureFlags?.copy() ?: Defaults.FEATURE_FLAGS.copy()
+        this.endpointProvider = builder.endpointProvider
+        this.bucketNameResolver = builder.bucketNameResolver
     }
 
     public inline fun copy(
@@ -154,6 +168,16 @@ public class ClientOptions(builder: Builder) {
          */
         public var featureFlags: FeatureFlagsType? = null
 
+        /**
+         * Optional endpoint provider that builds the full request URL.
+         */
+        public var endpointProvider: EndpointProvider? = null
+
+        /**
+         * Optional resolver that maps a logical bucket name into the actual bucket name.
+         */
+        public var bucketNameResolver: BucketNameResolver? = null
+
         public fun build(): ClientOptions {
             return ClientOptions(this)
         }
@@ -170,6 +194,8 @@ public class ClientOptions(builder: Builder) {
             this.retryer = opt.retryer
             this.credentialsProvider = opt.credentialsProvider
             this.httpClient = opt.httpClient
+            this.endpointProvider = opt.endpointProvider
+            this.bucketNameResolver = opt.bucketNameResolver
         }
     }
 }

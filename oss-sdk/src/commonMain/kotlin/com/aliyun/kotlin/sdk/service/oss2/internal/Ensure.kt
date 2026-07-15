@@ -42,6 +42,19 @@ internal object Ensure {
     }
 
     /**
+     * Checks whether the given string is a valid account id (non-empty, digits only)
+     *
+     * @param value The account id to validate
+     * @return true if the value is non-empty and contains only digits, false otherwise
+     */
+    fun isValidAccountId(value: String?): Boolean {
+        if (value.isNullOrEmpty()) {
+            return false
+        }
+        return value.all { it in '0'..'9' }
+    }
+
+    /**
      * Validates whether the given string is a valid object key (Object Name)
      *
      * @param value The object key to validate
