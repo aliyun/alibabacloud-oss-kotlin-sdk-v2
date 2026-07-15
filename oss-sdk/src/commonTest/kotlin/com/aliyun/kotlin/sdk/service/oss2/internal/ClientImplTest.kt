@@ -343,6 +343,60 @@ class ClientImplTest {
     }
 
     @Test
+    fun configAccountId() {
+        // null account id -> no init error
+        var config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // empty account id -> no init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = ""
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // valid numeric account id -> no init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "1234567890"
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // invalid account id with letters -> deferred init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "abc123"
+        }
+        ClientImpl(config).use { client ->
+            assertNotNull(client.innerOptions.initError)
+            assertContains(client.innerOptions.initError!!.message ?: "", "invalid account id")
+        }
+
+        // invalid account id with special characters -> deferred init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "123-456"
+        }
+        ClientImpl(config).use { client ->
+            assertNotNull(client.innerOptions.initError)
+            assertContains(client.innerOptions.initError!!.message ?: "", "invalid account id")
+        }
+    }
+
+    @Test
     fun configTimeout() {
     }
 

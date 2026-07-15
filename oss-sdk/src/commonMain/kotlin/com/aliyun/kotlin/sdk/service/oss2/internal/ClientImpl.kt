@@ -88,6 +88,13 @@ internal class ClientImpl(
             }
         }
 
+        // validate account id; the error is deferred and thrown when an operation is invoked
+        config.accountId?.let {
+            if (it.isNotEmpty() && !Ensure.isValidAccountId(it)) {
+                innerOpts.initError = IllegalArgumentException("invalid account id: $it, must be pure digits")
+            }
+        }
+
         this.innerOptions = innerOpts
 
         // build execute stack
@@ -248,6 +255,9 @@ internal class ClientImpl(
      * @param input The operation input to validate
      */
     private fun verifyOperation(input: OperationInput) {
+        // deferred configuration error
+        this.innerOptions.initError?.let { throw it }
+
         // check endpoint
         require(this.innerOptions.host.isNotEmpty()) { "endpoint or region is invalid." }
 
@@ -298,10 +308,14 @@ internal class ClientImpl(
 
         // signing context
         val authMethod = opOpts.authMethod ?: this.options.authMethod
+        val signingBucket = this.options.bucketNameResolver
+            ?.takeIf { input.bucket != null }
+            ?.buildBucketName(input)
+            ?: input.bucket
         val signCtx = SigningContext().apply {
             product = options.product
             region = options.region
-            bucket = input.bucket
+            bucket = signingBucket
             key = input.key
             isAuthMethodQuery = (authMethod == AuthMethodType.Query)
             subResource = listOf()
@@ -317,10 +331,14 @@ internal class ClientImpl(
         // request
         // request::host & path & query
         val query = HttpUtils.encodeQueryParameters(input.parameters)
+        val baseUrl = this.options.endpointProvider?.buildURL(input)
+            ?: buildString {
+                append(innerOptions.scheme)
+                append("://")
+                append(OssUtils.buildHostPath(input, innerOptions.authority, innerOptions.addressStyle))
+            }
         val url = buildString {
-            append(innerOptions.scheme)
-            append("://")
-            append(OssUtils.buildHostPath(input, innerOptions.authority, innerOptions.addressStyle))
+            append(baseUrl)
             if (query.isNotEmpty()) {
                 append("?").append(query)
             }

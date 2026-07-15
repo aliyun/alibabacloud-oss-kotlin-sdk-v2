@@ -14,4 +14,7 @@ internal class InnerOptions {
     var addressStyle: AddressStyleType = AddressStyleType.VirtualHosted
 
     var logger: LogAgent? = null
+
+    // deferred configuration error, thrown when an operation is invoked
+    var initError: Exception? = null
 }

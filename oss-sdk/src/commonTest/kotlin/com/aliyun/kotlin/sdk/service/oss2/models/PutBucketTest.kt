@@ -16,6 +16,7 @@ class PutBucketTest {
         assertNull(request.resourceGroupId)
         assertNull(request.bucketTagging)
         assertNull(request.createBucketConfiguration)
+        assertNull(request.agenticBucket)
 
         assertNotNull(request.headers)
         assertTrue {
@@ -34,6 +35,7 @@ class PutBucketTest {
             acl = "private"
             resourceGroupId = "resourceGroupId1"
             bucketTagging = "A=B"
+            agenticBucket = "my-agentic-bucket"
             createBucketConfiguration = CreateBucketConfiguration {
                 storageClass = "IA"
                 dataRedundancyType = "ZRS"
@@ -44,6 +46,7 @@ class PutBucketTest {
         assertEquals("private", request.acl)
         assertEquals("resourceGroupId1", request.resourceGroupId)
         assertEquals("A=B", request.bucketTagging)
+        assertEquals("my-agentic-bucket", request.agenticBucket)
         assertEquals("IA", request.createBucketConfiguration?.storageClass)
         assertEquals("ZRS", request.createBucketConfiguration?.dataRedundancyType)
 
@@ -52,6 +55,7 @@ class PutBucketTest {
             request.headers.containsKey("x-oss-acl")
             request.headers.containsKey("x-oss-resource-group-id")
             request.headers.containsKey("x-oss-bucket-tagging")
+            request.headers.containsKey("x-oss-agentic-bucket")
         }
         assertNotNull(request.parameters)
         assertTrue {
@@ -66,6 +70,7 @@ class PutBucketTest {
         builder.acl = "private"
         builder.resourceGroupId = "resourceGroupId1"
         builder.bucketTagging = "A=B"
+        builder.agenticBucket = "my-agentic-bucket"
         builder.createBucketConfiguration = CreateBucketConfiguration {
             storageClass = "IA"
             dataRedundancyType = "ZRS"
@@ -76,6 +81,7 @@ class PutBucketTest {
         assertEquals("private", request.acl)
         assertEquals("resourceGroupId1", request.resourceGroupId)
         assertEquals("A=B", request.bucketTagging)
+        assertEquals("my-agentic-bucket", request.agenticBucket)
         assertEquals("IA", request.createBucketConfiguration?.storageClass)
         assertEquals("ZRS", request.createBucketConfiguration?.dataRedundancyType)
 
@@ -84,6 +90,7 @@ class PutBucketTest {
             request.headers.containsKey("x-oss-acl")
             request.headers.containsKey("x-oss-resource-group-id")
             request.headers.containsKey("x-oss-bucket-tagging")
+            request.headers.containsKey("x-oss-agentic-bucket")
         }
         assertNotNull(request.parameters)
         assertTrue {
