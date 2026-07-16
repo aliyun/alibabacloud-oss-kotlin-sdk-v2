@@ -53,6 +53,7 @@ internal class SignerExecuteMiddleware(
      */
     private suspend fun signRequest(request: RequestMessage, context: ExecuteContext): RequestMessage {
         if (this.provider is AnonymousCredentialsProvider) {
+            logger?.debug { "Using anonymous credentials, skip signing" }
             return request
         }
 
@@ -60,19 +61,29 @@ internal class SignerExecuteMiddleware(
         try {
             cred = this.provider.getCredentials()
         } catch (e: Exception) {
+            logger?.error { "Failed to fetch credentials: ${e.message}" }
             throw CredentialsFetchException(e)
         }
 
         if (!cred.hasKeys()) {
+            logger?.error { "Credentials are null or empty" }
             throw CredentialsException("Credentials is null or empty.")
+        }
+
+        logger?.debug {
+            "Signing request: method=${request.method}, url=${request.url}, signer=${singer::class.simpleName}"
         }
 
         context.signingContext?.let {
             it.credentials = cred
             it.request = request
             this.singer.sign(it)
-            logger?.info {
+            logger?.debug {
                 "stringToSign: ${context.signingContext?.stringToSign}"
+            }
+
+            it.request?.headers?.get("Authorization")?.let { auth ->
+                logger?.debug { "Authorization header set: ${auth.take(30)}..." }
             }
 
             return requireNotNull(it.request)

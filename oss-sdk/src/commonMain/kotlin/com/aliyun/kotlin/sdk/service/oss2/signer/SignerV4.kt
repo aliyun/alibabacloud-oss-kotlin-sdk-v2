@@ -53,7 +53,6 @@ public open class SignerV4 : Signer {
             signingCtx.product ?: "",
             requireNotNull(signingCtx.stringToSign)
         )
-        // System.out.printf("signature:\n%s\n", signature);
         postAuthHeader(signingCtx, signature)
     }
 
@@ -105,8 +104,6 @@ public open class SignerV4 : Signer {
 
         val canonicalRequest = calcCanonicalRequest(signingCtx, normalizeHeader, encodedParameters)
         val stringToSign = calcStringToSign(iso8601Date, scope, canonicalRequest)
-        // System.out.printf("canonicalRequest:\n%s\n", canonicalRequest);
-
         signingCtx.stringToSign = stringToSign
         signingCtx.signTimeInEpoch = now.epochSeconds
         signingCtx.additionalHeaders = normalizeHeader.second
@@ -187,8 +184,6 @@ public open class SignerV4 : Signer {
 
         val canonicalRequest = calcCanonicalRequest(signingCtx, normalizedHeaders, encodedParameters)
         val stringToSign = calcStringToSign(iso8601Date, scope, canonicalRequest)
-        // System.out.printf("canonicalRequest:\n%s\n", canonicalRequest);
-
         signingCtx.stringToSign = stringToSign
         signingCtx.signTimeInEpoch = now.epochSeconds
         signingCtx.expirationInEpoch = expiration.epochSeconds

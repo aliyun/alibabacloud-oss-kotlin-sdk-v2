@@ -1,5 +1,7 @@
 package com.aliyun.kotlin.sdk.service.oss2.internal
 
+import com.aliyun.kotlin.sdk.service.oss2.exceptions.InconsistentException
+import com.aliyun.kotlin.sdk.service.oss2.logging.LogAgent
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
 import com.aliyun.kotlin.sdk.service.oss2.transport.ResponseMessage
 
@@ -10,7 +12,8 @@ internal class ResponseCheckerExecuteMiddleware(
     /**
      * Reference to the next middleware handler in the chain
      */
-    private val nextHandler: ExecuteMiddleware
+    private val nextHandler: ExecuteMiddleware,
+    private val logger: LogAgent? = null
 ) : ExecuteMiddleware {
     /**
      * executes the next middleware and processes the response message
@@ -22,7 +25,25 @@ internal class ResponseCheckerExecuteMiddleware(
      */
     override suspend fun execute(request: RequestMessage, context: ExecuteContext): ResponseMessage {
         val response = nextHandler.execute(request, context)
-        context.responseHandlers.forEach { handler -> handler.onResponse(response) }
+        logger?.debug {
+            "ResponseChecker: statusCode=${response.statusCode}, invoking ${context.responseHandlers.size} handler(s)"
+        }
+        for (handler in context.responseHandlers) {
+            try {
+                handler.onResponse(response)
+            } catch (e: Exception) {
+                if (e is InconsistentException) {
+                    logger?.error {
+                        "CRC64 inconsistency detected: client=${e.clientCrc}, server=${e.serverCrc}, requestId=${e.requestId}"
+                    }
+                } else {
+                    logger?.error {
+                        "ResponseHandler ${handler::class.simpleName} failed: ${e.message}"
+                    }
+                }
+                throw e
+            }
+        }
         return response
     }
 }

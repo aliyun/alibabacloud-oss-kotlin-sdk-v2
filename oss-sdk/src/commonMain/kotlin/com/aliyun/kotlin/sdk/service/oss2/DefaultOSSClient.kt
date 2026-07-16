@@ -217,6 +217,9 @@ internal class DefaultOSSClient(
                         result.headers["x-oss-hash-crc64ecma"]?.let { serverCrc ->
                             val clientCrc = checksum.digestValue.toULong().toString()
                             if (serverCrc != clientCrc) {
+                                this.clientImpl.innerOptions.logger?.error {
+                                    "CRC64 mismatch on download: client=$clientCrc, server=$serverCrc, bucket=${request.bucket}, key=${request.key}"
+                                }
                                 throw InconsistentException(clientCrc, serverCrc, result.headers)
                             }
                         }
@@ -332,8 +335,10 @@ internal class DefaultOSSClient(
         } catch (e: Exception) {
             val exception = e.cause as? ServiceException
             if ("NoSuchBucket" == exception?.errorCode) {
+                this.clientImpl.innerOptions.logger?.debug { "Bucket does not exist: $bucket" }
                 return false
             }
+            this.clientImpl.innerOptions.logger?.error { "doesBucketExist failed: $bucket, error=${e.message}" }
             throw e
         }
     }
@@ -352,8 +357,10 @@ internal class DefaultOSSClient(
             if ("NoSuchKey" == exception?.errorCode ||
                 (exception?.statusCode == 404 && "BadErrorResponse" == exception.errorCode)
             ) {
+                this.clientImpl.innerOptions.logger?.debug { "Object does not exist: bucket=$bucket, key=$key" }
                 return false
             }
+            this.clientImpl.innerOptions.logger?.error { "doesObjectExist failed: bucket=$bucket, key=$key, error=${e.message}" }
             throw e
         }
     }

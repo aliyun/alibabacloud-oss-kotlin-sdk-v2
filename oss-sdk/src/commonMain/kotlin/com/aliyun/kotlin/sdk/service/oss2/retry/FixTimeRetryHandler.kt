@@ -2,6 +2,7 @@ package com.aliyun.kotlin.sdk.service.oss2.retry
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
 import com.aliyun.kotlin.sdk.service.oss2.internal.ExecuteContext
+import com.aliyun.kotlin.sdk.service.oss2.logging.LogAgent
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
 import kotlinx.datetime.format.DateTimeComponents
 import kotlinx.datetime.parse
@@ -9,7 +10,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-internal class FixTimeRetryHandler : RetryHandler {
+internal class FixTimeRetryHandler(private val logger: LogAgent? = null) : RetryHandler {
 
     @OptIn(ExperimentalTime::class)
     override fun retrying(
@@ -31,7 +32,11 @@ internal class FixTimeRetryHandler : RetryHandler {
                         Instant.parse(it, DateTimeComponents.Formats.RFC_1123)
                     }
                     date?.let {
-                        context.signingContext?.clockOffset = it - Clock.System.now()
+                        val offset = it - Clock.System.now()
+                        context.signingContext?.clockOffset = offset
+                        logger?.info {
+                            "Clock skew detected, serverTime=$it, adjusted clockOffset by ${offset.inWholeSeconds}s"
+                        }
                     }
                 }
             }
