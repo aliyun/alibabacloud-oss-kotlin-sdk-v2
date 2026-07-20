@@ -14,7 +14,13 @@ alibabacloud-oss-kotlin-sdk-v2 is the v2 of the OSS SDK for the Kotlin programmi
 
 ## Running Environment
 - Applicable to`Kotlin 2.1.0`or above
-- Platform: Android, Desktop(JVM)
+- Supported platforms:
+  - JVM (Desktop / Server)
+  - Android
+  - JavaScript (Node.js, Browser)
+  - WebAssembly (wasmJs: Node.js, Browser)
+  - iOS (iosArm64, iosSimulatorArm64)
+  - macOS (macosArm64)
 
 ## Installing
 ### Install the sdk through Gradle
