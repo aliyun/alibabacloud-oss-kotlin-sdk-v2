@@ -30,6 +30,13 @@ kotlin {
 
     js {
         nodejs()
+        browser()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        nodejs()
+        browser()
     }
 
     iosArm64()
