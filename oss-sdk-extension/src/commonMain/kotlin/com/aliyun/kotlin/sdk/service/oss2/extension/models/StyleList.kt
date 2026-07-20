@@ -5,7 +5,6 @@ import com.aliyun.kotlin.sdk.service.oss2.serialization.xml.XmlRoot
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 /**
  * The container that was used to query the information about image styles.
  */

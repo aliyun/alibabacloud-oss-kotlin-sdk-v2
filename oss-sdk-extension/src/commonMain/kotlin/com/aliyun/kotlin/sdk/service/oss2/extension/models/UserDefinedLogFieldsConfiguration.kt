@@ -5,7 +5,6 @@ import com.aliyun.kotlin.sdk.service.oss2.serialization.xml.XmlRoot
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 /**
  * The specified field configurations of real-time logs in a bucket.
  */
