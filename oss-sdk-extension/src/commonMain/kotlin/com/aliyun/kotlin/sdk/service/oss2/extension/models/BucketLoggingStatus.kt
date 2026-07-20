@@ -5,7 +5,6 @@ import com.aliyun.kotlin.sdk.service.oss2.serialization.xml.XmlRoot
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 /**
  * Indicates the container used to store access logging configuration of a bucket.
  */

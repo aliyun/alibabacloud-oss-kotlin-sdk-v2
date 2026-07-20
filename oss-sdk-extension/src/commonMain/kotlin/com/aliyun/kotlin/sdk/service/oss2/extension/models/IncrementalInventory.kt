@@ -4,7 +4,6 @@ import com.aliyun.kotlin.sdk.service.oss2.serialization.xml.XmlElement
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 /**
  * Configuration container for incremental inventory.
  */

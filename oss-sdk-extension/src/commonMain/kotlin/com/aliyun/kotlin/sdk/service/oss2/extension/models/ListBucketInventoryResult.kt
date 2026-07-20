@@ -3,7 +3,7 @@ package com.aliyun.kotlin.sdk.service.oss2.extension.models
 /**
  * The result for the ListBucketInventory operation.
  */
-public class ListBucketInventoryResult(builder: Builder): ResultModel(builder) { 
+public class ListBucketInventoryResult(builder: Builder) : ResultModel(builder) {
 
     /**
      * The container that stores inventory configuration list.
@@ -34,7 +34,7 @@ public class ListBucketInventoryResult(builder: Builder): ResultModel(builder) {
             Builder().apply(builder).build()
     }
 
-    public class Builder: ResultModel.Builder() {
+    public class Builder : ResultModel.Builder() {
         public fun build(): ListBucketInventoryResult {
             return ListBucketInventoryResult(this)
         }

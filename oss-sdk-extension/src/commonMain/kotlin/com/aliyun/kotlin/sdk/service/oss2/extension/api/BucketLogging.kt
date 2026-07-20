@@ -1,23 +1,19 @@
 package com.aliyun.kotlin.sdk.service.oss2.extension.api
 
-
-import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
-
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.OperationMetadataKey.Companion.SUB_RESOURCE
 import com.aliyun.kotlin.sdk.service.oss2.OperationOptions
-import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
-import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
 import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.addContentMd5
+import com.aliyun.kotlin.sdk.service.oss2.extension.api.SerdeUtils.serializeInput
+import com.aliyun.kotlin.sdk.service.oss2.extension.models.*
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteStream
-
+import com.aliyun.kotlin.sdk.service.oss2.utils.MapUtils
 
 public suspend fun OSSClient.putBucketLogging(request: PutBucketLoggingRequest, options: OperationOptions? = null): PutBucketLoggingResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
-    requireNotNull(request.bucketLoggingStatus) {"request.bucketLoggingStatus is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
+    requireNotNull(request.bucketLoggingStatus) { "request.bucketLoggingStatus is required" }
 
     val input = OperationInput {
         opName = "PutBucketLogging"
@@ -25,21 +21,20 @@ public suspend fun OSSClient.putBucketLogging(request: PutBucketLoggingRequest, 
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("logging", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
         // body
         body = SerdeUtils.serializeXmlBody(request.bucketLoggingStatus).toByteStream()
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("logging")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -48,13 +43,12 @@ public suspend fun OSSClient.putBucketLogging(request: PutBucketLoggingRequest, 
     return PutBucketLoggingResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
     }
 }
 
 public suspend fun OSSClient.getBucketLogging(request: GetBucketLoggingRequest, options: OperationOptions? = null): GetBucketLoggingResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
         opName = "GetBucketLogging"
@@ -62,19 +56,18 @@ public suspend fun OSSClient.getBucketLogging(request: GetBucketLoggingRequest, 
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("logging", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("logging")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -84,14 +77,13 @@ public suspend fun OSSClient.getBucketLogging(request: GetBucketLoggingRequest, 
     return GetBucketLoggingResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
         innerBody = SerdeUtils.deserializeXmlBody<BucketLoggingStatus>(body)
     }
 }
 
 public suspend fun OSSClient.deleteBucketLogging(request: DeleteBucketLoggingRequest, options: OperationOptions? = null): DeleteBucketLoggingResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
         opName = "DeleteBucketLogging"
@@ -99,19 +91,18 @@ public suspend fun OSSClient.deleteBucketLogging(request: DeleteBucketLoggingReq
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("logging", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("logging")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -120,14 +111,13 @@ public suspend fun OSSClient.deleteBucketLogging(request: DeleteBucketLoggingReq
     return DeleteBucketLoggingResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
     }
 }
 
 public suspend fun OSSClient.putUserDefinedLogFieldsConfig(request: PutUserDefinedLogFieldsConfigRequest, options: OperationOptions? = null): PutUserDefinedLogFieldsConfigResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
-    requireNotNull(request.userDefinedLogFieldsConfiguration) {"request.userDefinedLogFieldsConfiguration is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
+    requireNotNull(request.userDefinedLogFieldsConfiguration) { "request.userDefinedLogFieldsConfiguration is required" }
 
     val input = OperationInput {
         opName = "PutUserDefinedLogFieldsConfig"
@@ -135,21 +125,20 @@ public suspend fun OSSClient.putUserDefinedLogFieldsConfig(request: PutUserDefin
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("userDefinedLogFieldsConfig", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
         // body
         body = SerdeUtils.serializeXmlBody(request.userDefinedLogFieldsConfiguration).toByteStream()
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("userDefinedLogFieldsConfig")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -158,13 +147,12 @@ public suspend fun OSSClient.putUserDefinedLogFieldsConfig(request: PutUserDefin
     return PutUserDefinedLogFieldsConfigResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
     }
 }
 
 public suspend fun OSSClient.getUserDefinedLogFieldsConfig(request: GetUserDefinedLogFieldsConfigRequest, options: OperationOptions? = null): GetUserDefinedLogFieldsConfigResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
         opName = "GetUserDefinedLogFieldsConfig"
@@ -172,19 +160,18 @@ public suspend fun OSSClient.getUserDefinedLogFieldsConfig(request: GetUserDefin
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("userDefinedLogFieldsConfig", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("userDefinedLogFieldsConfig")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -194,14 +181,13 @@ public suspend fun OSSClient.getUserDefinedLogFieldsConfig(request: GetUserDefin
     return GetUserDefinedLogFieldsConfigResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
         innerBody = SerdeUtils.deserializeXmlBody<UserDefinedLogFieldsConfiguration>(body)
     }
 }
 
 public suspend fun OSSClient.deleteUserDefinedLogFieldsConfig(request: DeleteUserDefinedLogFieldsConfigRequest, options: OperationOptions? = null): DeleteUserDefinedLogFieldsConfigResult {
-    
-    requireNotNull(request.bucket) {"request.bucket is required"}
+    requireNotNull(request.bucket) { "request.bucket is required" }
 
     val input = OperationInput {
         opName = "DeleteUserDefinedLogFieldsConfig"
@@ -209,19 +195,18 @@ public suspend fun OSSClient.deleteUserDefinedLogFieldsConfig(request: DeleteUse
         // default headers
         headers = MapUtils.headersMap().apply {
             put("Content-Type", "application/xml")
-        }  
+        }
         // parameters
-        parameters = MapUtils.parametersMap().apply { 
+        parameters = MapUtils.parametersMap().apply {
             put("userDefinedLogFieldsConfig", "")
-        } 
-        bucket = request.bucket 
+        }
+        bucket = request.bucket
     }
 
-    // opMetadata 
+    // opMetadata
     input.opMetadata[SUB_RESOURCE] = listOf("userDefinedLogFieldsConfig")
-    
-    
-    serializeInput(request, input) { 
+
+    serializeInput(request, input) {
         addContentMd5(this)
     }
 
@@ -230,7 +215,6 @@ public suspend fun OSSClient.deleteUserDefinedLogFieldsConfig(request: DeleteUse
     return DeleteUserDefinedLogFieldsConfigResult {
         headers = output.headers
         status = output.status
-        statusCode = output.statusCode 
+        statusCode = output.statusCode
     }
 }
-
