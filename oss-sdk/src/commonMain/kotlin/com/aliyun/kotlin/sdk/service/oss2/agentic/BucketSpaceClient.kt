@@ -26,7 +26,7 @@ public object BucketSpaceClient {
         val accountId = config.accountId ?: ""
         val region = config.region ?: ""
         val bsFn: (ClientOptions) -> ClientOptions = { opts ->
-            val provider = AgenticProvider(opts.endpoint, accountId, region, "bs-apsr")
+            val provider = AgenticProvider(opts.endpoint, accountId, region, "bs-apsr", opts.addressStyle)
             opts.copy {
                 endpointProvider = provider
                 bucketNameResolver = provider

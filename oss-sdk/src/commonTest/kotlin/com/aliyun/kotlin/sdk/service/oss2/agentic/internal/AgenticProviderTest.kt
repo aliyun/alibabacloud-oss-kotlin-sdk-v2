@@ -1,6 +1,7 @@
 package com.aliyun.kotlin.sdk.service.oss2.agentic.internal
 
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
+import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -10,6 +11,9 @@ class AgenticProviderTest {
 
     private fun provider(suffix: String) =
         AgenticProvider(endpoint, accountId = "1250000000", region = "cn-hangzhou", suffix = suffix)
+
+    private fun pathStyleProvider(suffix: String) =
+        AgenticProvider(endpoint, accountId = "1250000000", region = "cn-hangzhou", suffix = suffix, addressStyle = AddressStyleType.Path)
 
     @Test
     fun testBuildBucketNameAgentic() {
@@ -76,6 +80,45 @@ class AgenticProviderTest {
         assertEquals(
             "https://oss-cn-hangzhou.aliyuncs.com/",
             provider("ab-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testBuildUrlPathStyleWithBucketNoKey() {
+        val input = OperationInput {
+            opName = "GetAgenticBucket"
+            method = "GET"
+            bucket = "example"
+        }
+        assertEquals(
+            "https://oss-cn-hangzhou.aliyuncs.com/example-1250000000-cn-hangzhou-ab-apsr/",
+            pathStyleProvider("ab-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testBuildUrlPathStyleWithBucketAndKey() {
+        val input = OperationInput {
+            opName = "PutObject"
+            method = "PUT"
+            bucket = "space"
+            key = "dir/obj.txt"
+        }
+        assertEquals(
+            "https://oss-cn-hangzhou.aliyuncs.com/space-1250000000-cn-hangzhou-bs-apsr/dir/obj.txt",
+            pathStyleProvider("bs-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testBuildUrlPathStyleNoBucket() {
+        val input = OperationInput {
+            opName = "ListAgenticBuckets"
+            method = "GET"
+        }
+        assertEquals(
+            "https://oss-cn-hangzhou.aliyuncs.com/",
+            pathStyleProvider("ab-apsr").buildURL(input),
         )
     }
 }

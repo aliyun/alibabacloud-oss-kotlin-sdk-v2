@@ -2,6 +2,7 @@ package com.aliyun.kotlin.sdk.service.oss2.agentic.internal
 
 import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.internal.parseUrl
+import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import com.aliyun.kotlin.sdk.service.oss2.types.BucketNameResolver
 import com.aliyun.kotlin.sdk.service.oss2.types.EndpointProvider
 import com.aliyun.kotlin.sdk.service.oss2.utils.HttpUtils
@@ -17,6 +18,7 @@ internal class AgenticProvider(
     private val accountId: String,
     private val region: String,
     private val suffix: String,
+    private val addressStyle: AddressStyleType = AddressStyleType.VirtualHosted,
 ) : EndpointProvider, BucketNameResolver {
 
     private val scheme: String
@@ -36,8 +38,26 @@ internal class AgenticProvider(
     }
 
     override fun buildURL(input: OperationInput): String {
-        val host = input.bucket?.let { "${fullName(it)}.$authority" } ?: authority
-        val path = input.key?.let { HttpUtils.urlEncodePath(it) } ?: ""
-        return "$scheme://$host/$path"
+        val paths: MutableList<String> = mutableListOf()
+        var host = authority
+        val bucket = input.bucket
+
+        if (!bucket.isNullOrEmpty()) {
+            when (addressStyle) {
+                AddressStyleType.Path -> {
+                    paths.add(fullName(bucket))
+                    if (input.key == null) {
+                        paths.add("")
+                    }
+                }
+                else -> host = "${fullName(bucket)}.$authority"
+            }
+        }
+
+        if (input.key != null) {
+            paths.add(HttpUtils.urlEncodePath(input.key))
+        }
+
+        return "$scheme://$host/${paths.joinToString("/")}"
     }
 }

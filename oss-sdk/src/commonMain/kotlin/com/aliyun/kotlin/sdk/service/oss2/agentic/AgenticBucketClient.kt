@@ -41,7 +41,7 @@ public class AgenticBucketClient(
         val accountId = config.accountId ?: ""
         val region = config.region ?: ""
         val agenticFn: (ClientOptions) -> ClientOptions = { opts ->
-            val provider = AgenticProvider(opts.endpoint, accountId, region, "ab-apsr")
+            val provider = AgenticProvider(opts.endpoint, accountId, region, "ab-apsr", opts.addressStyle)
             opts.copy {
                 endpointProvider = provider
                 bucketNameResolver = provider
