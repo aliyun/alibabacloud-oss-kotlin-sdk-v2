@@ -12,6 +12,7 @@ internal class ListBucketSpacesResultXml {
     var maxKeys: Int? = null
     var continuationToken: String? = null
     var nextContinuationToken: String? = null
+    var startAfter: String? = null
     var isTruncated: Boolean? = null
     var bucketSpaces: List<BucketSpaceSummary>? = null
 }

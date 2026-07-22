@@ -243,6 +243,7 @@ internal object SerdeAgenticBucketBasic {
                 "MaxKeys" -> xml.maxKeys = value.first().text?.toIntOrNull()
                 "ContinuationToken" -> xml.continuationToken = value.first().text
                 "NextContinuationToken" -> xml.nextContinuationToken = value.first().text
+                "StartAfter" -> xml.startAfter = value.first().text
                 "IsTruncated" -> xml.isTruncated = value.first().text?.toBoolean()
                 "BucketSpaces" -> {
                     val spaces = mutableListOf<BucketSpaceSummary>()

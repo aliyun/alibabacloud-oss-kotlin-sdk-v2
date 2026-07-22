@@ -107,6 +107,7 @@ class SerdeAgenticBucketBasicTest {
         val request = ListBucketSpacesRequest {
             bucket = "example-1250000000-cn-hangzhou-ab-apsr"
             prefix = "space-"
+            startAfter = "space-000"
             maxKeys = 20
         }
         val input = SerdeAgenticBucketBasic.fromListBucketSpaces(request)
@@ -116,6 +117,7 @@ class SerdeAgenticBucketBasicTest {
         assertEquals("", input.parameters["agenticBucket"])
         assertEquals("", input.parameters["bucketSpace"])
         assertEquals("space-", input.parameters["prefix"])
+        assertEquals("space-000", input.parameters["start-after"])
         assertEquals("20", input.parameters["max-keys"])
     }
 
@@ -221,6 +223,7 @@ class SerdeAgenticBucketBasicTest {
             <MaxKeys>100</MaxKeys>
             <ContinuationToken>token-1</ContinuationToken>
             <NextContinuationToken>token-2</NextContinuationToken>
+            <StartAfter>space-000</StartAfter>
             <IsTruncated>false</IsTruncated>
             <BucketSpaces>
             <BucketSpace>
@@ -244,6 +247,7 @@ class SerdeAgenticBucketBasicTest {
         assertEquals(100, result.maxKeys)
         assertEquals("token-1", result.continuationToken)
         assertEquals("token-2", result.nextContinuationToken)
+        assertEquals("space-000", result.startAfter)
         assertEquals(false, result.isTruncated)
         assertEquals(1, result.bucketSpaces?.size)
         assertEquals("space-a", result.bucketSpaces?.get(0)?.name)
