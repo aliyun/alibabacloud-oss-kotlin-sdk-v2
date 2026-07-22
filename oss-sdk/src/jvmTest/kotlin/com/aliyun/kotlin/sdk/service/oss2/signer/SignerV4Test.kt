@@ -13,6 +13,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class SignerV4Test {
 
@@ -593,6 +594,31 @@ class SignerV4Test {
             val expectedAuth =
                 "OSS4-HMAC-SHA256 Credential=ak/20231216/cn-hangzhou/oss/aliyun_v4_request,Signature=3e9a6ebd7789767059589cc62116d9e4ebc4787e11b937f1683d0f344cf2693e"
             assertEquals(expectedAuth, context.request!!.headers.get("Authorization"))
+        }
+    }
+
+    @Test
+    fun testDateHeaderFormat_singleDigitDayOfMonth() {
+        val cred = Credentials("ak", "sk")
+        val request = RequestMessage().apply {
+            method = "PUT"
+            url = "http://bucket.oss-cn-hangzhou.aliyuncs.com"
+        }
+        request.headers.put("content-type", "text/plain")
+        request.headers.put("x-oss-content-sha256", "UNSIGNED-PAYLOAD")
+
+        val context = SigningContext()
+        context.bucket = "bucket"
+        context.request = request
+        context.credentials = cred
+        context.product = "oss"
+        context.region = "cn-hangzhou"
+        context.signTimeInEpoch = Instant.parse("2026-07-01T08:21:54Z").epochSeconds
+
+        val signer = SignerV4()
+        runBlocking {
+            signer.sign(context)
+            assertEquals("Wed, 01 Jul 2026 08:21:54 GMT", context.request!!.headers["Date"])
         }
     }
 }
