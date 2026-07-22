@@ -8,11 +8,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketRefererReque
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.RefererBlacklist
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.RefererConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.RefererList
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -21,24 +16,8 @@ import kotlin.test.assertTrue
 
 class BucketRefererTest : TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketReferer() = runTest {
+    fun testPutAndGetBucketReferer() = bucketTest { bucketName ->
         val configuration = RefererConfiguration {
             allowEmptyReferer = false
             allowTruncateQueryString = true
@@ -74,7 +53,7 @@ class BucketRefererTest : TestBase() {
     }
 
     @Test
-    fun testPutBucketRefererWithException() = runTest {
+    fun testPutBucketRefererWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketReferer(PutBucketRefererRequest {})
         }
@@ -99,7 +78,7 @@ class BucketRefererTest : TestBase() {
     }
 
     @Test
-    fun testGetBucketRefererWithException() = runTest {
+    fun testGetBucketRefererWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketReferer(GetBucketRefererRequest {})
         }

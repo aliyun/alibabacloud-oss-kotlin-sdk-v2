@@ -13,7 +13,7 @@ class SerdeRegionTest {
         assertFailsWith<DeserializationException> { fromXmlRegionInfoList(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlRegionInfoList("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlRegionInfoList("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -33,7 +33,7 @@ class SerdeRegionTest {
             </RegionInfo>
             </RegionInfoList>
         """.trimIndent()
-        val result = fromXmlRegionInfoList(xml.toByteArray())
+        val result = fromXmlRegionInfoList(xml.encodeToByteArray())
         assertEquals("oss-cn-hangzhou", result.regionInfos?.first()?.region)
         assertEquals("oss-cn-hangzhou.aliyuncs.com", result.regionInfos?.first()?.internetEndpoint)
         assertEquals("oss-cn-hangzhou-internal.aliyuncs.com", result.regionInfos?.first()?.internalEndpoint)

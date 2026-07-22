@@ -46,10 +46,8 @@ import com.aliyun.kotlin.sdk.service.oss2.OSSClient
 import com.aliyun.kotlin.sdk.service.oss2.credentials.StaticCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.logging.LogAgent
 import com.aliyun.kotlin.sdk.service.oss2.logging.LogAgentLevel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.io.files.Path
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -72,7 +70,7 @@ fun App() {
 
     var bucketName by remember { mutableStateOf("") }
     var objectKey by remember { mutableStateOf("") }
-    var path by remember { mutableStateOf<Path?>(null) }
+    var file by remember { mutableStateOf<PickedFile?>(null) }
     var progress by remember { mutableFloatStateOf(0F) }
 
     var presignResult by remember { mutableStateOf<Map<String, Any>?>(null) }
@@ -372,7 +370,7 @@ fun App() {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 (service
                                     ?: throw RuntimeException("Client not initialized.")).putBucket(
@@ -388,7 +386,7 @@ fun App() {
                     })
                     Button(
                         onClick = {
-                            coroutineScope.launch(Dispatchers.IO) {
+                            coroutineScope.launch(ioDispatcher) {
                                 try {
                                     (service
                                         ?: throw RuntimeException("Client not initialized.")).deleteBucket(
@@ -406,7 +404,7 @@ fun App() {
                     )
                     Button(
                         onClick = {
-                            coroutineScope.launch(Dispatchers.IO) {
+                            coroutineScope.launch(ioDispatcher) {
                                 try {
                                     (service
                                         ?: throw RuntimeException("Client not initialized.")).listObjects(
@@ -458,8 +456,8 @@ fun App() {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    FilePicker { filePath ->
-                        path = filePath
+                    FilePicker { picked ->
+                        file = picked
                     }
                 }
                 LinearProgressIndicator(
@@ -475,9 +473,9 @@ fun App() {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(onClick = {
-                        job = coroutineScope.launch(Dispatchers.IO) {
+                        job = coroutineScope.launch(ioDispatcher) {
                             try {
-                                path?.let {
+                                file?.let {
                                     (service
                                         ?: throw RuntimeException("Client not initialized.")).putObject(
                                         bucketName,
@@ -486,7 +484,7 @@ fun App() {
                                     ) { p ->
                                         progress = p
                                     }
-                                } ?: throw RuntimeException("File path is null")
+                                } ?: throw RuntimeException("No file selected")
                                 dialogMessage("Upload successful")
                             } catch (e: Exception) {
                                 e.printStackTrace()
@@ -497,7 +495,7 @@ fun App() {
                         Text("PutObject")
                     })
                     Button(onClick = {
-                        job = coroutineScope.launch(Dispatchers.IO) {
+                        job = coroutineScope.launch(ioDispatcher) {
                             try {
                                 val content = (service
                                     ?: throw RuntimeException("Client not initialized.")).getObject(
@@ -518,7 +516,7 @@ fun App() {
                         Text("GetObject")
                     })
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 val headers = (service
                                     ?: throw RuntimeException("Client not initialized.")).headObject(
@@ -536,7 +534,7 @@ fun App() {
                         Text("HeadObject")
                     })
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 (service
                                     ?: throw RuntimeException("Client not initialized.")).deleteObject(
@@ -575,7 +573,7 @@ fun App() {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 presignResult = (service
                                     ?: throw RuntimeException("Client not initialized.")).presign(
@@ -592,7 +590,7 @@ fun App() {
                         Text("PutObject")
                     })
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 presignResult = (service
                                     ?: throw RuntimeException("Client not initialized.")).presign(
@@ -609,7 +607,7 @@ fun App() {
                         Text("GetObject")
                     })
                     Button(onClick = {
-                        coroutineScope.launch(Dispatchers.IO) {
+                        coroutineScope.launch(ioDispatcher) {
                             try {
                                 presignResult = (service
                                     ?: throw RuntimeException("Client not initialized.")).presign(

@@ -1,20 +1,12 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectAclRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectAclRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.VersioningConfiguration
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -24,42 +16,8 @@ import kotlin.test.assertTrue
 
 class ObjectAclTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-    val objectKey: String = randomObjectKey()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-        defaultClient.putObject(PutObjectRequest {
-            bucket = bucketName
-            key = objectKey
-            body = ByteStream.fromString("Hello oss.")
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                bucket = bucketName
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetObjectAcl() = runTest {
+    fun testPutAndGetObjectAcl() = objectTest { bucketName, objectKey ->
         defaultClient.putObjectAcl(PutObjectAclRequest {
             bucket = bucketName
             key = objectKey
@@ -75,12 +33,8 @@ class ObjectAclTest: TestBase() {
     }
 
     @Test
-    fun testPutAndGetObjectAclWithVersionId() = runTest {
-        val bucket = randomBucketName()
+    fun testPutAndGetObjectAclWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -107,19 +61,10 @@ class ObjectAclTest: TestBase() {
         assertEquals("private", result.accessControlPolicy?.accessControlList?.grant)
         assertNotNull(result.accessControlPolicy?.owner?.id)
         assertNotNull(result.accessControlPolicy?.owner?.displayName)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = objectResult.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testPutObjectAclWithException() = runTest {
+    fun testPutObjectAclWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.putObjectAcl(PutObjectAclRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -145,7 +90,7 @@ class ObjectAclTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectAclWithException() = runTest {
+    fun testGetObjectAclWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.getObjectAcl(GetObjectAclRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 

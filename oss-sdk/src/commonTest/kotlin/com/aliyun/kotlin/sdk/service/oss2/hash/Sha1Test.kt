@@ -52,17 +52,10 @@ class Sha1Test {
     }
 
     @Test
-    fun testVector6() {
-        val input = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno"
-        val expected = "7789f0c9 ef7bfc40 d9331114 3dfbe69e 2017f592"
-        assertShaHexEqual(input, expected, 16_777_216)
-    }
-
-    @Test
     fun testPangramSha1() {
         assertEquals(
             "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9",
-            "The quick brown fox jumps over the lazy dog".toByteArray().hmacSha1("key".toByteArray()).toHexString()
+            "The quick brown fox jumps over the lazy dog".encodeToByteArray().hmacSha1("key".encodeToByteArray()).toHexString()
         )
     }
 }

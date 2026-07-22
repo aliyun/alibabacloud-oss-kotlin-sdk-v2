@@ -12,7 +12,6 @@ import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.progress.ProgressListener
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
-import kotlinx.io.files.Path
 
 class Service(
     var client: OSSClient
@@ -33,13 +32,14 @@ class Service(
     suspend fun putObject(
         bucket: String,
         key: String,
-        filePath: Path,
+        file: PickedFile,
         progress: (Float) -> Unit
     ) {
+        val bytes = file.bytes()
         client.putObject(PutObjectRequest {
             this.bucket = bucket
             this.key = key
-            body = ByteStream.fromFile(filePath)
+            body = ByteStream.fromBytes(bytes)
             progressListener = ProgressListener { bytesSent, totalBytesSent, totalBytesExpectedToSend ->
                 val p = totalBytesSent.toFloat() / totalBytesExpectedToSend
                 progress(p)
@@ -127,9 +127,7 @@ sealed class Data() {
     data class Image(val bytes: ByteArray?): Data() {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Image
+            if (other !is Image) return false
             return bytes.contentEquals(other.bytes)
         }
 

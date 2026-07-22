@@ -18,7 +18,7 @@ internal object XmlUtils {
                 '<' -> "&lt;"
                 '>' -> "&gt;"
                 else -> if (ch.code < 0x20) {
-                    "&#x" + Integer.toHexString(ch.code) + ";"
+                    "&#x" + ch.code.toString(16) + ";"
                 } else {
                     null
                 }

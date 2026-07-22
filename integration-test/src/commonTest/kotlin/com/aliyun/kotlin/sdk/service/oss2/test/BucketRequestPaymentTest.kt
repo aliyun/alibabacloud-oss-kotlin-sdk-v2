@@ -6,11 +6,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.api.putBucketRequestPayment
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketRequestPaymentRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketRequestPaymentRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.RequestPaymentConfiguration
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -19,24 +14,8 @@ import kotlin.test.assertTrue
 
 class BucketRequestPaymentTest : TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketRequestPayment() = runTest {
+    fun testPutAndGetBucketRequestPayment() = bucketTest { bucketName ->
         val configuration = RequestPaymentConfiguration {
             payer = "Requester"
         }
@@ -54,7 +33,7 @@ class BucketRequestPaymentTest : TestBase() {
     }
 
     @Test
-    fun testPutBucketRequestPaymentWithException() = runTest {
+    fun testPutBucketRequestPaymentWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketRequestPayment(PutBucketRequestPaymentRequest {})
         }
@@ -79,7 +58,7 @@ class BucketRequestPaymentTest : TestBase() {
     }
 
     @Test
-    fun testGetBucketRequestPaymentWithException() = runTest {
+    fun testGetBucketRequestPaymentWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketRequestPayment(GetBucketRequestPaymentRequest {})
         }

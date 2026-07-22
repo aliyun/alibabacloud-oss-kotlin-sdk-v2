@@ -9,11 +9,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.DeleteBucketEncryptio
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketEncryptionRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketEncryptionRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.ServerSideEncryptionRule
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -22,24 +17,8 @@ import kotlin.test.assertTrue
 
 class BucketEncryptionTest : TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketEncryption() = runTest {
+    fun testPutAndGetBucketEncryption() = bucketTest { bucketName ->
         val rule = ServerSideEncryptionRule {
             applyServerSideEncryptionByDefault = ApplyServerSideEncryptionByDefault {
                 sSEAlgorithm = "AES256"
@@ -59,7 +38,7 @@ class BucketEncryptionTest : TestBase() {
     }
 
     @Test
-    fun testPutBucketEncryptionWithException() = runTest {
+    fun testPutBucketEncryptionWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketEncryption(PutBucketEncryptionRequest {})
         }
@@ -84,7 +63,7 @@ class BucketEncryptionTest : TestBase() {
     }
 
     @Test
-    fun testGetBucketEncryptionWithException() = runTest {
+    fun testGetBucketEncryptionWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketEncryption(GetBucketEncryptionRequest {})
         }
@@ -101,7 +80,7 @@ class BucketEncryptionTest : TestBase() {
     }
 
     @Test
-    fun testDeleteBucketEncryption() = runTest {
+    fun testDeleteBucketEncryption() = bucketTest { bucketName ->
         val rule = ServerSideEncryptionRule {
             applyServerSideEncryptionByDefault = ApplyServerSideEncryptionByDefault {
                 sSEAlgorithm = "AES256"
@@ -120,7 +99,7 @@ class BucketEncryptionTest : TestBase() {
     }
 
     @Test
-    fun testDeleteBucketEncryptionWithException() = runTest {
+    fun testDeleteBucketEncryptionWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.deleteBucketEncryption(DeleteBucketEncryptionRequest {})
         }

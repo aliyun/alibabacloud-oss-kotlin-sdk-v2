@@ -19,11 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.io.buffered
 import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.readByteArray
 
 @Composable
 actual fun FilePicker(
-    onFileSelected: (Path) -> Unit
+    onFileSelected: (PickedFile) -> Unit
 ) {
     var path by remember { mutableStateOf("") }
     Row(
@@ -37,7 +40,13 @@ actual fun FilePicker(
             value = path,
             onValueChange = {
                 path = it
-                onFileSelected(Path(it))
+                onFileSelected(
+                    PickedFile(it) {
+                        SystemFileSystem.source(Path(it)).buffered().use { source ->
+                            source.readByteArray()
+                        }
+                    }
+                )
             },
             singleLine = true,
             modifier = Modifier

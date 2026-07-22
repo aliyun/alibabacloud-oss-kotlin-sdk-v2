@@ -14,7 +14,13 @@ alibabacloud-oss-kotlin-sdk-v2 是OSS在Kotlin编译语言下的第二版SDK
 
 ## 运行环境
  - 适用于`Kotlin 2.1.0`及以上版本
- - 支持平台: Android, Desktop(JVM)
+ - 支持平台:
+   - JVM (Desktop / Server)
+   - Android
+   - JavaScript (Node.js, Browser)
+   - WebAssembly (wasmJs: Node.js, Browser)
+   - iOS (iosArm64, iosSimulatorArm64)
+   - macOS (macosArm64)
  
 ## 安装方法
 ### 通过Gradle安装

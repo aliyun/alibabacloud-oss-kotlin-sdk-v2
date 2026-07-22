@@ -1,21 +1,11 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectTaggingRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectTaggingRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.Tag
 import com.aliyun.kotlin.sdk.service.oss2.models.TagSet
 import com.aliyun.kotlin.sdk.service.oss2.models.Tagging
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
-import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -24,42 +14,8 @@ import kotlin.test.assertTrue
 
 class ObjectTaggingTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-    val objectKey: String = randomObjectKey()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-        defaultClient.putObject(PutObjectRequest {
-            bucket = bucketName
-            key = objectKey
-            body = ByteStream.fromString("Hello oss.")
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                bucket = bucketName
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutObjectTagging() = runTest {
+    fun testPutObjectTagging() = objectTest { bucketName, objectKey ->
         val result = defaultClient.putObjectTagging(PutObjectTaggingRequest {
             bucket = bucketName
             key = objectKey
@@ -76,7 +32,7 @@ class ObjectTaggingTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectTagging() = runTest {
+    fun testGetObjectTagging() = objectTest { bucketName, objectKey ->
         val result = defaultClient.putObjectTagging(PutObjectTaggingRequest {
             bucket = bucketName
             key = objectKey
@@ -102,7 +58,7 @@ class ObjectTaggingTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectTaggingWithException() = runTest {
+    fun testPutObjectTaggingWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.putObjectTagging(PutObjectTaggingRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -128,7 +84,7 @@ class ObjectTaggingTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectTaggingWithException() = runTest {
+    fun testGetObjectTaggingWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.getObjectTagging(GetObjectTaggingRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 

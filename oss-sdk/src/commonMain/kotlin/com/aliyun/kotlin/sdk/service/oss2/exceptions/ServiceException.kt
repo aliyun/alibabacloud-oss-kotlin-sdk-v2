@@ -69,11 +69,11 @@ public class ServiceException(
         }
 
         private fun toErrorCode(errorFields: Map<String, String>): String {
-            return errorFields.getOrDefault("Code", "BadErrorResponse")
+            return errorFields["Code"] ?: "BadErrorResponse"
         }
 
         private fun toErrorMessage(errorFields: Map<String, String>): String {
-            return errorFields.getOrDefault("Message", "")
+            return errorFields["Message"] ?: ""
         }
 
         private fun toRequestId(

@@ -45,6 +45,6 @@ public class EqualJitterBackoff(
     }
 
     override fun toString(): String {
-        return String.format("<EqualJitterBackoff, base delay: '%s', max backoff: '%s'>", baseDelay, maxBackoff)
+        return "<EqualJitterBackoff, base delay: '$baseDelay', max backoff: '$maxBackoff'>"
     }
 }

@@ -35,6 +35,21 @@ kotlin {
 
     jvm()
 
+    js {
+        nodejs()
+        browser()
+    }
+
+    iosArm64()
+    iosSimulatorArm64()
+    macosArm64()
+
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        nodejs()
+        browser()
+    }
+
     jvmToolchain(17)
 
     applyDefaultHierarchyTemplate()
@@ -70,19 +85,55 @@ kotlin {
             dependsOn(jvmCommonMain)
         }
 
-        /*
         val nonJvmCommonMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.cio)
+                implementation(libs.kotlincrypto.hash.md)
+                implementation(libs.kotlincrypto.hash.sha1)
+                implementation(libs.kotlincrypto.hash.sha2)
+                implementation(libs.kotlincrypto.macs.hmac.sha1)
+                implementation(libs.kotlincrypto.macs.hmac.sha2)
             }
         }
-         */
+
+        val jsMain by getting {
+            dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.js)
+                implementation(libs.kotlinx.browser)
+            }
+        }
+
+        val appleMain by getting {
+            dependsOn(nonJvmCommonMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
 
         commonTest.dependencies {
             implementation(libs.kotlinx.coroutines.test)
             implementation(kotlin("test"))
+        }
+
+        val nonJvmCommonTest by creating {
+            dependsOn(commonTest.get())
+        }
+
+        val jsTest by getting {
+            dependsOn(nonJvmCommonTest)
+        }
+
+        val wasmJsTest by getting {
+            dependsOn(nonJvmCommonTest)
         }
 
         jvmTest.dependencies {

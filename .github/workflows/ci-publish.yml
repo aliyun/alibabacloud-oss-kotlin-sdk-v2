@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     name: Publish Verification
@@ -32,3 +35,21 @@ jobs:
 
       - name: Publish to Maven Local
         run: ./gradlew publishToMavenLocal
+
+      - name: Verify target parity between modules
+        run: |
+          BASE=~/.m2/repository/com/aliyun
+          core=$(find "$BASE" -maxdepth 1 -type d -name 'kotlin-oss-v2-*' -printf '%f\n' | sed 's#^kotlin-oss-v2-##' | grep -v '^extension' | sort)
+          ext=$(find "$BASE" -maxdepth 1 -type d -name 'kotlin-oss-v2-extension-*' -printf '%f\n' | sed 's#^kotlin-oss-v2-extension-##' | sort)
+          if [ -z "$core" ] || [ -z "$ext" ]; then
+            echo "::error::no published modules found under $BASE (publish step may have produced nothing)"
+            exit 1
+          fi
+          echo "oss-sdk targets:"; echo "$core"
+          echo "oss-sdk-extension targets:"; echo "$ext"
+          if [ "$core" != "$ext" ]; then
+            echo "::error::oss-sdk and oss-sdk-extension published target sets differ"
+            diff <(echo "$core") <(echo "$ext") || true
+            exit 1
+          fi
+          echo "Target sets match."

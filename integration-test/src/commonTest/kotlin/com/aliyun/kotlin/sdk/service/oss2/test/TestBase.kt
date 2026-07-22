@@ -6,17 +6,22 @@ import com.aliyun.kotlin.sdk.service.oss2.ClientConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.OSSClient
 import com.aliyun.kotlin.sdk.service.oss2.credentials.StaticCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.models.AbortMultipartUploadRequest
+import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListBucketsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListMultipartUploadsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectVersionsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
+import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
+import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listBucketsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listMultipartUploadsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectVersionsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
@@ -29,18 +34,55 @@ import kotlin.time.ExperimentalTime
 
 open class TestBase {
     companion object {
-        const val BUCKET_NAME_PREFIX: String = "kotlin-sdk-test-bucket-"
-        const val OBJECT_NAME_PREFIX: String = "kotlin-sdk-test-object-"
+        const val BUCKET_NAME_PREFIX: String = "oss-sdk-test-kotlin-bucket-"
+        const val OBJECT_NAME_PREFIX: String = "oss-sdk-test-kotlin-object-"
 
         // OSS test configuration
-        val OSS_TEST_REGION: String = System.getenv("OSS_TEST_REGION")?: ""
-        val OSS_TEST_ACCESS_KEY_ID: String = System.getenv("OSS_TEST_ACCESS_KEY_ID")?: ""
-        val OSS_TEST_ACCESS_KEY_SECRET: String = System.getenv("OSS_TEST_ACCESS_KEY_SECRET")?: ""
-        val OSS_TEST_ENDPOINT: String? = System.getenv("OSS_TEST_ENDPOINT")
-        val OSS_TEST_RAM_ROLE_ARN: String = System.getenv("OSS_TEST_RAM_ROLE_ARN")?: ""
-        val OSS_TEST_RAM_UID: String = System.getenv("OSS_TEST_RAM_UID")?: ""
+        val OSS_TEST_REGION: String = testEnv("OSS_TEST_REGION") ?: ""
+        val OSS_TEST_ACCESS_KEY_ID: String = testEnv("OSS_TEST_ACCESS_KEY_ID") ?: ""
+        val OSS_TEST_ACCESS_KEY_SECRET: String = testEnv("OSS_TEST_ACCESS_KEY_SECRET") ?: ""
+        val OSS_TEST_ENDPOINT: String? = testEnv("OSS_TEST_ENDPOINT")
+        val OSS_TEST_RAM_ROLE_ARN: String = testEnv("OSS_TEST_RAM_ROLE_ARN") ?: ""
+        val OSS_TEST_RAM_UID: String = testEnv("OSS_TEST_RAM_UID") ?: ""
 
-        val TEST_FILE_TEMP_DIR = "$SystemTemporaryDirectory/kotlin-sdk-test"
+        val TEST_FILE_TEMP_DIR = Path(SystemTemporaryDirectory, "kotlin-sdk-test")
+    }
+
+    /**
+     * Runs [block] inside a single [runTest], creating a fresh bucket beforehand and cleaning it up
+     * afterwards. Setup/teardown must live in the test body because Kotlin/JS does not await
+     * suspending `@BeforeTest`/`@AfterTest` hooks.
+     */
+    fun bucketTest(
+        configure: PutBucketRequest.Builder.() -> Unit = {},
+        block: suspend (bucket: String) -> Unit,
+    ): TestResult = runTest {
+        val bucket = randomBucketName()
+        defaultClient.putBucket(PutBucketRequest {
+            this.bucket = bucket
+            configure()
+        })
+        try {
+            block(bucket)
+        } finally {
+            runCatching {
+                cleanBucket(bucket, OSS_TEST_REGION)
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = bucket })
+            }
+        }
+    }
+
+    /**
+     * Like [bucketTest] but also pre-creates an object (content "Hello oss.") and yields its key.
+     */
+    fun objectTest(block: suspend (bucket: String, key: String) -> Unit): TestResult = bucketTest { bucket ->
+        val key = randomObjectKey()
+        defaultClient.putObject(PutObjectRequest {
+            this.bucket = bucket
+            this.key = key
+            body = ByteStream.fromString("Hello oss.")
+        })
+        block(bucket, key)
     }
 
     fun randomBucketName(): String {
@@ -64,6 +106,7 @@ open class TestBase {
         }).collect {
            it.buckets?.forEach { it0 ->
                 cleanBucket(it0.name!!, it0.region!!)
+                defaultClient.deleteBucket(DeleteBucketRequest { this.bucket = it0.name })
            }
         }
     }
@@ -84,16 +127,6 @@ open class TestBase {
     }
 
     private suspend fun cleanObjects(client: OSSClient, bucketName: String) {
-        client.listObjectsV2Paginator(ListObjectsV2Request {
-            bucket = bucketName
-        }).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
         client.listObjectVersionsPaginator(ListObjectVersionsRequest {
             bucket = bucketName
         }).collect {
@@ -102,6 +135,23 @@ open class TestBase {
                     this.bucket = bucketName
                     this.key = obj.key
                     this.versionId = obj.versionId
+                })
+            }
+            it.deleteMarkers?.forEach { obj ->
+                defaultClient.deleteObject(DeleteObjectRequest {
+                    this.bucket = bucketName
+                    this.key = obj.key
+                    this.versionId = obj.versionId
+                })
+            }
+        }
+        client.listObjectsV2Paginator(ListObjectsV2Request {
+            bucket = bucketName
+        }).collect {
+            it.contents?.forEach { obj ->
+                defaultClient.deleteObject(DeleteObjectRequest {
+                    bucket = bucketName
+                    key = obj.key
                 })
             }
         }
@@ -123,12 +173,12 @@ open class TestBase {
 
     fun createTestFile(fileName: String, content: ByteArray): Path {
         val fs = SystemFileSystem
-        Path(TEST_FILE_TEMP_DIR).also {
+        TEST_FILE_TEMP_DIR.also {
             if (!fs.exists(it)) {
                 fs.createDirectories(it)
             }
         }
-        val path = Path("$TEST_FILE_TEMP_DIR/$fileName")
+        val path = Path(TEST_FILE_TEMP_DIR, fileName)
         if (fs.exists(path)) {
             fs.delete(path)
         }
@@ -145,7 +195,7 @@ open class TestBase {
 
     fun removeTestFile(fileName: String) {
         val fs = SystemFileSystem
-        val path = Path("$TEST_FILE_TEMP_DIR/$fileName")
+        val path = Path(TEST_FILE_TEMP_DIR, fileName)
         if (fs.exists(path)) {
             fs.delete(path)
         }

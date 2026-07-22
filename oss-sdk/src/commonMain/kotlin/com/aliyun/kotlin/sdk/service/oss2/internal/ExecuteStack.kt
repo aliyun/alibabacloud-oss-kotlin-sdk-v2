@@ -31,7 +31,7 @@ internal class ExecuteStack(
      */
     fun resolve(): ExecuteMiddleware {
         if (cached == null) {
-            synchronized(this) {
+            platformSynchronized(this) {
                 if (cached == null) {
                     var prev: ExecuteMiddleware = transport
                     for (item in stack.reversed()) {

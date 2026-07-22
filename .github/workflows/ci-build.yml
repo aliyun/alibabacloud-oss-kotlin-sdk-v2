@@ -8,15 +8,42 @@ on:
   pull_request:
     branches:
       - main
+      - 'dev-*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  build:
-    name: Build + Unit Tests
-    runs-on: ubuntu-latest
+  test:
+    name: Test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Run every platform even if one fails, so a single red target never hides the others.
+      fail-fast: false
+      matrix:
+        include:
+          - name: JVM
+            os: ubuntu-latest
+            tasks: ":oss-sdk:jvmTest :oss-sdk-extension:jvmTest"
+          - name: Android
+            os: ubuntu-latest
+            tasks: ":oss-sdk:testDebugUnitTest :oss-sdk-extension:testDebugUnitTest"
+          - name: JS
+            os: ubuntu-latest
+            tasks: ":oss-sdk:jsTest :oss-sdk-extension:jsTest"
+          - name: WasmJs
+            os: ubuntu-latest
+            tasks: ":oss-sdk:wasmJsTest"
+          - name: macOS
+            os: macos-latest
+            tasks: ":oss-sdk:macosArm64Test :oss-sdk-extension:macosArm64Test"
+          - name: iOS
+            os: macos-latest
+            tasks: ":oss-sdk:iosSimulatorArm64Test :oss-sdk-extension:iosSimulatorArm64Test"
 
     steps:
       - name: Checkout
@@ -31,5 +58,5 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build and Test
-        run: ./gradlew assemble allTests -x :integration-test:allTests
+      - name: Run tests
+        run: ./gradlew ${{ matrix.tasks }}

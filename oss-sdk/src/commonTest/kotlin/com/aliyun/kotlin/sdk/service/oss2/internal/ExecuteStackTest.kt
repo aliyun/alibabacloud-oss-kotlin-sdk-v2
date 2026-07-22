@@ -7,7 +7,7 @@ import com.aliyun.kotlin.sdk.service.oss2.transport.HttpTransport
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestOptions
 import com.aliyun.kotlin.sdk.service.oss2.transport.ResponseMessage
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class ExecuteStackTest {
@@ -18,7 +18,7 @@ class ExecuteStackTest {
     }
 
     @Test
-    fun testConstructor() {
+    fun testConstructor() = runTest {
         // build execute stack
         val transport = TransportExecuteMiddleware(MockHttpClient())
         val stack = ExecuteStack(transport)
@@ -27,8 +27,6 @@ class ExecuteStackTest {
         stack.push({ x -> SignerExecuteMiddleware(x, AnonymousCredentialsProvider(), NopSigner()) }, "Signer")
         stack.push({ x -> ResponseCheckerExecuteMiddleware(x) }, "ResponseChecker")
 
-        runBlocking {
-            stack.execute(RequestMessage(), ExecuteContext())
-        }
+        stack.execute(RequestMessage(), ExecuteContext())
     }
 }

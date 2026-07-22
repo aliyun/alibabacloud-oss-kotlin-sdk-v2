@@ -14,7 +14,7 @@ class SerdeObjectAclTest {
         assertFailsWith<DeserializationException> { fromXmlObjectAccessControlPolicy(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlObjectAccessControlPolicy("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlObjectAccessControlPolicy("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -28,7 +28,7 @@ class SerdeObjectAclTest {
             </AccessControlList>
             </AccessControlPolicy>
         """.trimIndent()
-        val result = fromXmlObjectAccessControlPolicy(xml.toByteArray())
+        val result = fromXmlObjectAccessControlPolicy(xml.encodeToByteArray())
         assertEquals(result.accessControlList?.grant, "public-read")
         assertEquals(result.owner?.id, "1234513715092****")
         assertEquals(result.owner?.displayName, "1234513715092****")

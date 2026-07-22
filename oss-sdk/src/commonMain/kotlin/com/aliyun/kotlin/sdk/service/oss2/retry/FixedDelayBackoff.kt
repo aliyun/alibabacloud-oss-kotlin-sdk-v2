@@ -23,6 +23,6 @@ public class FixedDelayBackoff(
     }
 
     override fun toString(): String {
-        return String.format("<FixedDelayBackoff, delay: '%s'>", delay)
+        return "<FixedDelayBackoff, delay: '$delay'>"
     }
 }

@@ -4,7 +4,7 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ExperimentalCli
 
 @OptIn(ExperimentalCli::class)
-fun main(args: Array<String>) {
+fun runCli(args: Array<String>) {
     val parser = ArgParser("oss")
     parser.subcommands(
         ListBuckets(),

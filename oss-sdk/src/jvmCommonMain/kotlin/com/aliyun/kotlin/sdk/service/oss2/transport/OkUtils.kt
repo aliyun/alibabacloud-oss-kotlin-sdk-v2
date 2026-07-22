@@ -147,6 +147,9 @@ internal fun ByteStream?.asRequestBody(options: RequestOptions): RequestBody {
         is ByteStream.SourceStream -> readFrom()
             .asOkioSource(options.uploadObservers)
             .asRequestBody(contentLength)
+        is ByteStream.ChannelStream -> throw UnsupportedOperationException(
+            "ChannelStream cannot be used as an HTTP request body"
+        )
         null -> RequestBody.EMPTY
     }
 }

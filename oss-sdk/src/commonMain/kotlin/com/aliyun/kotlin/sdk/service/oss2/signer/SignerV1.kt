@@ -258,7 +258,7 @@ public open class SignerV1 : Signer {
         accessKeySecret: String,
         stringToSign: String
     ): String {
-        val signatureBytes = stringToSign.toByteArray().hmacSha1(accessKeySecret.toByteArray())
+        val signatureBytes = stringToSign.encodeToByteArray().hmacSha1(accessKeySecret.encodeToByteArray())
         return Base64.encode(signatureBytes)
     }
 

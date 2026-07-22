@@ -15,7 +15,7 @@ class SerdeBucketVersioningTest {
         var version = VersioningConfiguration.Builder().build()
         assertEquals(
             "<VersioningConfiguration></VersioningConfiguration>",
-            String(toXmlVersioningConfiguration(version).toByteArray())
+            toXmlVersioningConfiguration(version).toByteArray().decodeToString()
         )
 
         version = VersioningConfiguration.Builder().apply {
@@ -23,7 +23,7 @@ class SerdeBucketVersioningTest {
         }.build()
         assertEquals(
             "<VersioningConfiguration><Status>Enabled</Status></VersioningConfiguration>",
-            String(toXmlVersioningConfiguration(version).toByteArray())
+            toXmlVersioningConfiguration(version).toByteArray().decodeToString()
         )
     }
 
@@ -33,7 +33,7 @@ class SerdeBucketVersioningTest {
         assertFailsWith<DeserializationException> { fromXmlVersioningConfiguration(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlVersioningConfiguration("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlVersioningConfiguration("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -41,7 +41,7 @@ class SerdeBucketVersioningTest {
             <Status>Enabled</Status>
             </VersioningConfiguration>
         """.trimIndent()
-        val result = fromXmlVersioningConfiguration(xml.toByteArray())
+        val result = fromXmlVersioningConfiguration(xml.encodeToByteArray())
         assertEquals(result.status, "Enabled")
     }
 
@@ -51,7 +51,7 @@ class SerdeBucketVersioningTest {
         assertFailsWith<DeserializationException> { fromXmlListVersionsResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListVersionsResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListVersionsResult("<a></a>".encodeToByteArray()) }
 
         // normal
         // no encoding
@@ -125,7 +125,7 @@ class SerdeBucketVersioningTest {
             </CommonPrefixes>
             </ListVersionsResult>
         """.trimIndent()
-        var result = fromXmlListVersionsResult(xml.toByteArray())
+        var result = fromXmlListVersionsResult(xml.encodeToByteArray())
         assertEquals("examplebucket-1250000000", result.name)
         assertEquals(1000, result.maxKeys)
         assertEquals("BAEQMxiBgICbof2D0BYiIGRhZjgwMzJiMjA3MjQ0ODE5MWYxZDYwMzJlZjU1****", result.nextVersionIdMarker)
@@ -251,7 +251,7 @@ class SerdeBucketVersioningTest {
             </CommonPrefixes>
             </ListVersionsResult>
         """.trimIndent()
-        result = fromXmlListVersionsResult(xml.toByteArray())
+        result = fromXmlListVersionsResult(xml.encodeToByteArray())
         assertEquals("examplebucket-1250000000", result.name)
         assertEquals(1000, result.maxKeys)
         assertEquals("BAEQMxiBgICbof2D0BYiIGRhZjgwMzJiMjA3MjQ0ODE5MWYxZDYwMzJlZjU1****", result.nextVersionIdMarker)
