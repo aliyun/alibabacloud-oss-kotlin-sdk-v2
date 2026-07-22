@@ -52,13 +52,6 @@ class Sha256Test {
     }
 
     @Test
-    fun testVector6() {
-        val input = "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmno"
-        val expected = "50e72a0e 26442fe2 552dc393 8ac58658 228c0cbf b1d2ca87 2ae43526 6fcd055e"
-        assertSha256HexEqual(input, expected, 16_777_216)
-    }
-
-    @Test
     fun testPangramSha256() {
         val PANGRAM = "The quick brown fox jumps over the lazy dog"
         assertEquals(

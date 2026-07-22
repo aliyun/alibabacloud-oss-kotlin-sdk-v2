@@ -54,6 +54,6 @@ internal object SerdeUtils {
 
     inline fun <reified T> serializeXmlBody(value: T): ByteArray {
         val xml = XmlSerializer.Default.encodeToString(value)
-        return xml.toByteArray()
+        return xml.encodeToByteArray()
     }
 }

@@ -10,7 +10,7 @@ class ProgressSourceTest {
         var totalBytesTransferred: Long = 0
         val source = ProgressSource(Buffer().also { it0 ->
             repeat(1024) {
-                it0.write("Hello oss.".toByteArray())
+                it0.write("Hello oss.".encodeToByteArray())
             }
         }, 10240, ProgressClosure { bytesSent, totalBytesSent, totalBytesExpected ->
             totalBytesTransferred += bytesSent

@@ -1,14 +1,8 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketAclRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketAclResult
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketAclRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -17,24 +11,8 @@ import kotlin.test.assertTrue
 
 class BucketAclTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketAcl() = runTest {
+    fun testPutAndGetBucketAcl() = bucketTest { bucketName ->
         defaultClient.putBucketAcl(PutBucketAclRequest {
             bucket = bucketName
             acl = "private"
@@ -46,7 +24,7 @@ class BucketAclTest: TestBase() {
     }
 
     @Test
-    fun testPutBucketAclWithException() = runTest {
+    fun testPutBucketAclWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketAcl(PutBucketAclRequest {})
         }
@@ -63,7 +41,7 @@ class BucketAclTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketAclWithException() = runTest {
+    fun testGetBucketAclWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketAcl(GetBucketAclRequest {})
         }

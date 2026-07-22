@@ -1,19 +1,11 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectAclRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetSymlinkRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutSymlinkRequest
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -22,42 +14,8 @@ import kotlin.test.assertTrue
 
 class ObjectSymlinkTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-    val objectKey: String = randomObjectKey()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-        defaultClient.putObject(PutObjectRequest {
-            bucket = bucketName
-            key = objectKey
-            body = ByteStream.fromString("Hello oss.")
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listObjectsV2Paginator(
-            ListObjectsV2Request {
-                bucket = bucketName
-            }
-        ).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutSymlink() = runTest {
+    fun testPutSymlink() = objectTest { bucketName, objectKey ->
         val symlink = "symlink-$objectKey"
         val result = defaultClient.putSymlink(PutSymlinkRequest {
             bucket = bucketName
@@ -68,7 +26,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testPutSymlinkWithObjectAcl() = runTest {
+    fun testPutSymlinkWithObjectAcl() = objectTest { bucketName, objectKey ->
         val symlink = "symlink-$objectKey"
         defaultClient.putSymlink(PutSymlinkRequest {
             bucket = bucketName
@@ -85,7 +43,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testPutSymlinkWithStorageClass() = runTest {
+    fun testPutSymlinkWithStorageClass() = objectTest { bucketName, objectKey ->
         val symlink = "symlink-$objectKey"
         defaultClient.putSymlink(PutSymlinkRequest {
             bucket = bucketName
@@ -96,7 +54,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testPutSymlinkWithForbidOverwrite() = runTest {
+    fun testPutSymlinkWithForbidOverwrite() = objectTest { bucketName, objectKey ->
         val symlink = "symlink-$objectKey"
 
         defaultClient.putObject(PutObjectRequest {
@@ -117,7 +75,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testPutSymlinkWithException() = runTest {
+    fun testPutSymlinkWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.putSymlink(PutSymlinkRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -143,7 +101,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testGetSymlink() = runTest {
+    fun testGetSymlink() = objectTest { bucketName, objectKey ->
         val symlink = "symlink-$objectKey"
         defaultClient.putSymlink(PutSymlinkRequest {
             bucket = bucketName
@@ -158,7 +116,7 @@ class ObjectSymlinkTest: TestBase() {
     }
 
     @Test
-    fun testGetSymlinkWithException() = runTest {
+    fun testGetSymlinkWithException() = objectTest { bucketName, objectKey ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.getSymlink(GetSymlinkRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 

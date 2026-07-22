@@ -7,11 +7,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetBucketHttpsConfigR
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.HttpsConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketHttpsConfigRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.TLS
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -20,24 +15,8 @@ import kotlin.test.assertTrue
 
 class BucketHttpsConfigTest : TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketHttpsConfig() = runTest {
+    fun testPutAndGetBucketHttpsConfig() = bucketTest { bucketName ->
         val configuration = HttpsConfiguration {
             tls = TLS {
                 enable = true
@@ -61,7 +40,7 @@ class BucketHttpsConfigTest : TestBase() {
     }
 
     @Test
-    fun testPutBucketHttpsConfigWithException() = runTest {
+    fun testPutBucketHttpsConfigWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketHttpsConfig(PutBucketHttpsConfigRequest {})
         }
@@ -86,7 +65,7 @@ class BucketHttpsConfigTest : TestBase() {
     }
 
     @Test
-    fun testGetBucketHttpsConfigWithException() = runTest {
+    fun testGetBucketHttpsConfigWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketHttpsConfig(GetBucketHttpsConfigRequest {})
         }

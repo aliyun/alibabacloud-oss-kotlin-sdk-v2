@@ -13,7 +13,7 @@ class SerdeServiceTest {
         assertFailsWith<DeserializationException> { fromXmlListAllMyBucketsResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListAllMyBucketsResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListAllMyBucketsResult("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -50,7 +50,7 @@ class SerdeServiceTest {
             </Buckets>
             </ListAllMyBucketsResult>
         """.trimIndent()
-        val result = fromXmlListAllMyBucketsResult(xml.toByteArray())
+        val result = fromXmlListAllMyBucketsResult(xml.encodeToByteArray())
         assertEquals("my", result.prefix)
         assertEquals("mybucket", result.marker)
         assertEquals(10, result.maxKeys)

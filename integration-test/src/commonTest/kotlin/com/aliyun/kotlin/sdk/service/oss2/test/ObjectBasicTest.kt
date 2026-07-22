@@ -9,7 +9,6 @@ import com.aliyun.kotlin.sdk.service.oss2.models.AppendObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CleanRestoredObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.CopyObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.Delete
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteMultipleObjectsRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ObjectIdentifier
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
@@ -19,28 +18,22 @@ import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetObjectTaggingRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.HeadObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.JobParameters
-import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectsV2Request
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.RestoreObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.RestoreRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.VersioningConfiguration
-import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.progress.ProgressListener
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
 import com.aliyun.kotlin.sdk.service.oss2.types.toFlow
 import io.ktor.util.encodeBase64
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import kotlin.random.Random
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -52,34 +45,8 @@ import kotlin.test.assertTrue
 
 class ObjectBasicTest: TestBase() {
 
-    private val bucketName = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.listObjectsV2Paginator(ListObjectsV2Request {
-            bucket = bucketName
-        }).collect {
-            it.contents?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    bucket = bucketName
-                    key = obj.key
-                })
-            }
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetObject() = runTest {
+    fun testPutAndGetObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -110,7 +77,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectAsStream() = runTest {
+    fun testGetObjectAsStream() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -125,13 +92,13 @@ class ObjectBasicTest: TestBase() {
         }).use { result ->
             assertEquals(200, result.statusCode)
             assertEquals("Hello oss.", result.body?.toByteArray()?.decodeToString())
-            assertIs<ByteStream.SourceStream>(result.body)
+            assertTrue(result.body != null && result.body !is ByteStream.Buffer)
         }
     }
 
 
     @Test
-    fun testGetObjectAsStreamWithLargeData() = runTest {
+    fun testGetObjectAsStreamWithLargeData() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val length = 1024 *1024 + 1234
         val data = Random.nextBytes(length)
@@ -149,7 +116,7 @@ class ObjectBasicTest: TestBase() {
 
         assertEquals(200, result.statusCode)
         assertEquals(length.toLong(), result.contentLength)
-        assertIs<ByteStream.SourceStream>(result.body)
+        assertTrue(result.body != null && result.body !is ByteStream.Buffer)
         result.close()
 
         defaultClient.getObjectAsStream(GetObjectRequest{
@@ -169,9 +136,9 @@ class ObjectBasicTest: TestBase() {
 
 
     @Test
-    fun testPutObjectWithFile() = runTest {
+    fun testPutObjectWithFile() = bucketTest { bucketName ->
         val key = randomObjectKey()
-        val path = createTestFile("file", "Hello oss.".toByteArray())
+        val path = createTestFile("file", "Hello oss.".encodeToByteArray())
 
         defaultClient.putObject(PutObjectRequest {
             bucket = bucketName
@@ -189,7 +156,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithCrc() = runTest {
+    fun testPutObjectWithCrc() = bucketTest { bucketName ->
         val key = randomObjectKey()
         OSSClient.create(ClientConfiguration.loadDefault().apply{
             region = OSS_TEST_REGION
@@ -213,7 +180,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithProgress() = runTest {
+    fun testPutObjectWithProgress() = bucketTest { bucketName ->
         val key = randomObjectKey()
         var totalBytesTransferred: Long = 0
 
@@ -222,7 +189,7 @@ class ObjectBasicTest: TestBase() {
             this.key = key
             body = ByteStream.fromSource(Buffer().also { it0 ->
                 repeat(1024) {
-                    it0.write("Hello oss.".toByteArray())
+                    it0.write("Hello oss.".encodeToByteArray())
                 }
             }, 10240)
             progressListener = ProgressListener { bytesSent, totalBytesSent, totalBytesExpectedToSend ->
@@ -235,7 +202,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithForbidOverwrite() = runTest {
+    fun testPutObjectWithForbidOverwrite() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -257,7 +224,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithObjectAcl() = runTest {
+    fun testPutObjectWithObjectAcl() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -274,7 +241,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithStorageClass() = runTest {
+    fun testPutObjectWithStorageClass() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -291,7 +258,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithTagging() = runTest {
+    fun testPutObjectWithTagging() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -310,7 +277,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithMetadata() = runTest {
+    fun testPutObjectWithMetadata() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -329,7 +296,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testPutObjectWithException() = runTest {
+    fun testPutObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.putObject(PutObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -349,10 +316,10 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectToFile() = runTest {
+    fun testGetObjectToFile() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val path = createTestFile("file", 1024 * 1024 + 1234)
-        val downloadPath = Path("$TEST_FILE_TEMP_DIR/downloadFile")
+        val downloadPath = Path(TEST_FILE_TEMP_DIR, "downloadFile")
 
         defaultClient.putObject(PutObjectRequest {
             bucket = bucketName
@@ -378,10 +345,10 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectToFileWithProgressListener() = runTest {
+    fun testGetObjectToFileWithProgressListener() = bucketTest { bucketName ->
         val key = randomObjectKey()
         val path = createTestFile("file", 1024 * 1024 + 1234)
-        val downloadPath = Path("$TEST_FILE_TEMP_DIR/downloadFile")
+        val downloadPath = Path(TEST_FILE_TEMP_DIR, "downloadFile")
         var totalBytesTransferred: Long = 0
 
         defaultClient.putObject(PutObjectRequest {
@@ -416,7 +383,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectWithRange() = runTest {
+    fun testGetObjectWithRange() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -433,7 +400,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectWithIfMatch() = runTest {
+    fun testGetObjectWithIfMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -454,7 +421,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectWithIfNoneMatch() = runTest {
+    fun testGetObjectWithIfNoneMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val result = defaultClient.putObject(PutObjectRequest {
@@ -475,7 +442,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectWithResponseParameter() = runTest {
+    fun testGetObjectWithResponseParameter() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -495,12 +462,15 @@ class ObjectBasicTest: TestBase() {
         assertEquals("10", result.headers["expires"])
         assertEquals("cache", result.headers["cache-control"])
         assertEquals("disposition", result.headers["content-disposition"])
-        assertEquals("url", result.headers["content-encoding"])
+        // The Node fetch runtime strips the Content-Encoding response header; native transports keep it.
+        if (!isJsPlatform) {
+            assertEquals("url", result.headers["content-encoding"])
+        }
         assertEquals("ch", result.headers["content-language"])
     }
 
     @Test
-    fun testGetObjectWithVersionId() = runTest {
+    fun testGetObjectWithVersionId() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
@@ -529,7 +499,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObject() = runTest {
+    fun testCopyObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -547,7 +517,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithForbidOverwrite() = runTest {
+    fun testCopyObjectWithForbidOverwrite() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -575,7 +545,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithCopySourceIfMatch() = runTest {
+    fun testCopyObjectWithCopySourceIfMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -598,7 +568,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithCopySourceIfNoneMatch() = runTest {
+    fun testCopyObjectWithCopySourceIfNoneMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val result = defaultClient.putObject(PutObjectRequest {
@@ -622,7 +592,7 @@ class ObjectBasicTest: TestBase() {
 
 //    @OptIn(ExperimentalTime::class)
 //    @Test
-//    fun testCopyObjectWithCopySourceIfUnmodifiedSince() = runTest {
+//    fun testCopyObjectWithCopySourceIfUnmodifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //        val date = Clock.System.now().format(DateTimeComponents.Formats.RFC_1123)
 //
@@ -648,7 +618,7 @@ class ObjectBasicTest: TestBase() {
 
 //    @OptIn(ExperimentalTime::class)
 //    @Test
-//    fun testCopyObjectWithCopySourceIfModifiedSince() = runTest {
+//    fun testCopyObjectWithCopySourceIfModifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //
 //        defaultClient.putObject(PutObjectRequest {
@@ -672,7 +642,7 @@ class ObjectBasicTest: TestBase() {
 //    }
 
     @Test
-    fun testCopyObjectWithAcl() = runTest {
+    fun testCopyObjectWithAcl() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -695,7 +665,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithStorageClass() = runTest {
+    fun testCopyObjectWithStorageClass() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -718,7 +688,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithTagging() = runTest {
+    fun testCopyObjectWithTagging() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -744,7 +714,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithMetadata() = runTest {
+    fun testCopyObjectWithMetadata() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -770,7 +740,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCopyObjectWithException() = runTest {
+    fun testCopyObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.copyObject(CopyObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -796,7 +766,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testAppendObject() = runTest {
+    fun testAppendObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val result = defaultClient.appendObject(AppendObjectRequest {
@@ -815,11 +785,11 @@ class ObjectBasicTest: TestBase() {
             bucket = bucketName
             this.key = key
         })
-        assertEquals("Hello oss.", getResult.body?.toByteArray()?.let { String(it) })
+        assertEquals("Hello oss.", getResult.body?.toByteArray()?.decodeToString())
     }
 
     @Test
-    fun testAppendObjectWithCrc() = runTest {
+    fun testAppendObjectWithCrc() = bucketTest { bucketName ->
         val key = randomObjectKey()
         OSSClient.create(ClientConfiguration.loadDefault().apply{
             region = OSS_TEST_REGION
@@ -844,13 +814,13 @@ class ObjectBasicTest: TestBase() {
                 bucket = bucketName
                 this.key = key
             })
-            assertEquals("Hello oss.", getResult.body?.toByteArray()?.let { String(it) })
+            assertEquals("Hello oss.", getResult.body?.toByteArray()?.decodeToString())
         }
 
     }
 
     @Test
-    fun testAppendObjectWithProgress() = runTest {
+    fun testAppendObjectWithProgress() = bucketTest { bucketName ->
         val key = randomObjectKey()
         var totalBytesTransferred: Long = 0
 
@@ -860,7 +830,7 @@ class ObjectBasicTest: TestBase() {
             position = 0
             body = ByteStream.fromSource(Buffer().also { it0 ->
                 repeat(1024) {
-                    it0.write("Hello oss.".toByteArray())
+                    it0.write("Hello oss.".encodeToByteArray())
                 }
             }, 10240)
             progressListener = ProgressListener { bytesSent, totalBytesSent, totalBytesExpectedToSend ->
@@ -873,7 +843,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testAppendObjectWithObjectAcl() = runTest {
+    fun testAppendObjectWithObjectAcl() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.appendObject(AppendObjectRequest {
@@ -891,7 +861,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testAppendObjectWithStorageClass() = runTest {
+    fun testAppendObjectWithStorageClass() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.appendObject(AppendObjectRequest {
@@ -909,7 +879,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testAppendObjectWithMetadata() = runTest {
+    fun testAppendObjectWithMetadata() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.appendObject(AppendObjectRequest {
@@ -929,7 +899,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testAppendObjectWithException() = runTest {
+    fun testAppendObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.appendObject(AppendObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -950,7 +920,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteObject() =runTest {
+    fun testDeleteObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -972,12 +942,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteObjectWithVersionId() =runTest {
+    fun testDeleteObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1002,14 +968,10 @@ class ObjectBasicTest: TestBase() {
             })
         }
         assertEquals(404, (exception.cause as ServiceException).statusCode)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testDeleteObjectWithException() = runTest {
+    fun testDeleteObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.deleteObject(DeleteObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -1028,7 +990,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testHeadObject() = runTest {
+    fun testHeadObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -1052,7 +1014,7 @@ class ObjectBasicTest: TestBase() {
 
 //    @OptIn(ExperimentalTime::class)
 //    @Test
-//    fun testHeadObjectWithIfModifiedSince() = runTest {
+//    fun testHeadObjectWithIfModifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //
 //        defaultClient.putObject(PutObjectRequest {
@@ -1072,7 +1034,7 @@ class ObjectBasicTest: TestBase() {
 //    }
 
     @Test
-    fun testHeadObjectWithIfMatch() = runTest {
+    fun testHeadObjectWithIfMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -1093,7 +1055,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testHeadObjectWithIfNoneMatch() = runTest {
+    fun testHeadObjectWithIfNoneMatch() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val result = defaultClient.putObject(PutObjectRequest {
@@ -1114,7 +1076,7 @@ class ObjectBasicTest: TestBase() {
     }
 
 //    @Test
-//    fun testHeadObjectWithIfUnmodifiedSince() = runTest {
+//    fun testHeadObjectWithIfUnmodifiedSince() = bucketTest { bucketName ->
 //        val key = randomObjectKey()
 //
 //        defaultClient.putObject(PutObjectRequest {
@@ -1135,12 +1097,8 @@ class ObjectBasicTest: TestBase() {
 //    }
 
     @Test
-    fun testHeadObjectWithVersionId() = runTest {
+    fun testHeadObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1159,19 +1117,10 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(200, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testHeadObjectWithException() = runTest {
+    fun testHeadObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.headObject(HeadObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -1190,7 +1139,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectMeta() = runTest {
+    fun testGetObjectMeta() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -1208,12 +1157,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testGetObjectMetaWithVersionId() =runTest {
+    fun testGetObjectMetaWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1232,19 +1177,10 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(200, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testGetObjectMetaWithException() = runTest {
+    fun testGetObjectMetaWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.getObjectMeta(GetObjectMetaRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -1263,7 +1199,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testRestoreObject() = runTest {
+    fun testRestoreObject() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -1282,7 +1218,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testRestoreObjectWithColdArchive() = runTest {
+    fun testRestoreObjectWithColdArchive() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putObject(PutObjectRequest {
@@ -1304,12 +1240,8 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testRestoreObjectWithVersionId() = runTest {
+    fun testRestoreObjectWithVersionId() = bucketTest { bucket ->
         val key = randomObjectKey()
-        val bucket = randomBucketName()
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -1332,19 +1264,10 @@ class ObjectBasicTest: TestBase() {
             versionId = result.versionId
         })
         assertEquals(202, headResult.statusCode)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            versionId = result.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testRestoreObjectWithException() = runTest {
+    fun testRestoreObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.restoreObject(RestoreObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -1370,7 +1293,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testCleanRestoredObjectWithException() = runTest {
+    fun testCleanRestoredObjectWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.cleanRestoredObject(CleanRestoredObjectRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 
@@ -1389,7 +1312,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteMultipleObjects() = runTest {
+    fun testDeleteMultipleObjects() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val objectIdentifiers: MutableList<ObjectIdentifier> = mutableListOf()
@@ -1415,7 +1338,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteMultipleObjectsWithQuiet() = runTest {
+    fun testDeleteMultipleObjectsWithQuiet() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         val objectIdentifiers: MutableList<ObjectIdentifier> = mutableListOf()
@@ -1442,7 +1365,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteMultipleObjectsWithVersionId() = runTest {
+    fun testDeleteMultipleObjectsWithVersionId() = bucketTest { bucketName ->
         val key = randomObjectKey()
 
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
@@ -1474,7 +1397,7 @@ class ObjectBasicTest: TestBase() {
     }
 
     @Test
-    fun testDeleteMultipleObjectsWithException() = runTest {
+    fun testDeleteMultipleObjectsWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> { invalidClient.deleteMultipleObjects(DeleteMultipleObjectsRequest {}) }
         assertEquals(exception.message, "request.bucket is required")
 

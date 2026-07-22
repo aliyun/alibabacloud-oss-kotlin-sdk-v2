@@ -6,7 +6,6 @@ import com.aliyun.kotlin.sdk.service.oss2.credentials.EnvironmentVariableCredent
 import com.aliyun.kotlin.sdk.service.oss2.models.CopyObjectRequest
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
-import kotlinx.coroutines.runBlocking
 
 // java -jar cli-jvm.jar CopyObject --region `region` --bucket `bucket` --key `destinationKey` --sourceKey `sourceKey`
 class CopyObject : SampleSubcommand(

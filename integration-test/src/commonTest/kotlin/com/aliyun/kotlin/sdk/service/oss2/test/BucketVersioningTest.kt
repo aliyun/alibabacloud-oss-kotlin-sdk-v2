@@ -1,11 +1,8 @@
 package com.aliyun.kotlin.sdk.service.oss2.test
 
 import com.aliyun.kotlin.sdk.service.oss2.exceptions.ServiceException
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.GetBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.ListObjectVersionsRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketVersioningRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutObjectRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.VersioningConfiguration
@@ -23,13 +20,7 @@ import kotlin.test.assertTrue
 class BucketVersioningTest: TestBase() {
 
     @Test
-    fun testPutAndGetBucketVersioning() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testPutAndGetBucketVersioning() = bucketTest { bucket ->
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -40,10 +31,6 @@ class BucketVersioningTest: TestBase() {
             this.bucket = bucket
         })
         assertEquals("Enabled", result.versioningConfiguration?.status)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -83,13 +70,8 @@ class BucketVersioningTest: TestBase() {
     }
 
     @Test
-    fun testListObjectVersions() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectVersions() = bucketTest { bucket ->
         val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -109,75 +91,38 @@ class BucketVersioningTest: TestBase() {
         })
         assertEquals(10, result.versions?.size)
         assertEquals(bucket, result.name)
-
-        result.versions?.forEach { obj ->
-            defaultClient.deleteObject(DeleteObjectRequest {
-                this.bucket = bucket
-                this.key = obj.key
-                this.versionId = obj.versionId
-            })
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectVersionsWithPrefix() = runTest {
-        val bucket = randomBucketName()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectVersionsWithPrefix() = bucketTest { bucket ->
         val result = defaultClient.listObjectVersions(ListObjectVersionsRequest {
             this.bucket = bucket
             prefix = "a/"
         })
         assertEquals(bucket, result.name)
         assertEquals("a/", result.prefix)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectVersionsWithMaxKeys() = runTest {
-        val bucket = randomBucketName()
-        val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
-
+    fun testListObjectVersionsWithMaxKeys() = bucketTest { bucket ->
         val result = defaultClient.listObjectVersions(ListObjectVersionsRequest {
             this.bucket = bucket
             maxKeys = 10
         })
         assertEquals(bucket, result.name)
         assertEquals(10, result.maxKeys)
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectVersionsWithDelimiter() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectVersionsWithDelimiter() = bucketTest { bucket ->
         val key = "file"
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
                 status = "Enabled"
             }
         })
-        val putResult = defaultClient.putObject(PutObjectRequest {
+        defaultClient.putObject(PutObjectRequest {
             this.bucket = bucket
             this.key = key
             body = ByteStream.fromString("Hello oss.")
@@ -190,25 +135,11 @@ class BucketVersioningTest: TestBase() {
         assertEquals(bucket, result.name)
         assertEquals("f", result.delimiter)
         assertEquals("f", result.commonPrefixes?.first()?.prefix)
-
-        defaultClient.deleteObject(DeleteObjectRequest {
-            this.bucket = bucket
-            this.key = key
-            this.versionId = putResult.versionId
-        })
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
-    fun testListObjectVersionsWithKeyMarkerAndVersionIdMarker() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectVersionsWithKeyMarkerAndVersionIdMarker() = bucketTest { bucket ->
         val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -232,7 +163,6 @@ class BucketVersioningTest: TestBase() {
         assertEquals(key, result.keyMarker)
         assertNotNull(result.nextVersionIdMarker)
         assertNotNull(result.nextKeyMarker)
-        val versions = result.versions?.toMutableList()
 
         val versionIdMarker = result.nextVersionIdMarker
         result = defaultClient.listObjectVersions(ListObjectVersionsRequest {
@@ -244,18 +174,6 @@ class BucketVersioningTest: TestBase() {
         assertEquals(5, result.versions?.size)
         assertEquals(bucket, result.name)
         assertEquals(versionIdMarker, result.versionIdMarker)
-        result.versions?.let { versions?.addAll(it) }
-
-        versions?.forEach { obj ->
-            defaultClient.deleteObject(DeleteObjectRequest {
-                this.bucket = bucket
-                this.key = obj.key
-                this.versionId = obj.versionId
-            })
-        }
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 
     @Test
@@ -274,13 +192,8 @@ class BucketVersioningTest: TestBase() {
     }
 
     @Test
-    fun testListObjectVersionsPaginator() = runTest {
-        val bucket = randomBucketName()
+    fun testListObjectVersionsPaginator() = bucketTest { bucket ->
         val key = randomObjectKey()
-
-        defaultClient.putBucket(PutBucketRequest {
-            this.bucket = bucket
-        })
         defaultClient.putBucketVersioning(PutBucketVersioningRequest {
             this.bucket = bucket
             versioningConfiguration = VersioningConfiguration {
@@ -302,18 +215,6 @@ class BucketVersioningTest: TestBase() {
         }).collect {
             assertEquals(5, it.versions?.size)
             assertEquals(bucket, it.name)
-
-            it.versions?.forEach { obj ->
-                defaultClient.deleteObject(DeleteObjectRequest {
-                    this.bucket = bucket
-                    this.key = obj.key
-                    this.versionId = obj.versionId
-                })
-            }
         }
-
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            this.bucket = bucket
-        })
     }
 }

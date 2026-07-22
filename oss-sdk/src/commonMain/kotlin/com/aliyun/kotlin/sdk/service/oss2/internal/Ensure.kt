@@ -7,12 +7,12 @@ internal object Ensure {
     /**
      * Regular expression for validating bucket name format
      */
-    private val BUCKET_NAMING_PATTERN = Regex("^[a-z0-9][a-z0-9-_]{1,61}[a-z0-9]$").toPattern()
+    private val BUCKET_NAMING_PATTERN = Regex("^[a-z0-9][a-z0-9-_]{1,61}[a-z0-9]$")
 
     /**
      * Regular expression for validating region format
      */
-    private val REGION_PATTERN = Regex("^[a-z0-9-]+$").toPattern()
+    private val REGION_PATTERN = Regex("^[a-z0-9-]+$")
 
     /**
      * Checks whether the given string is a valid region identifier
@@ -24,7 +24,7 @@ internal object Ensure {
         if (value == null) {
             return false
         }
-        return REGION_PATTERN.matcher(value).matches()
+        return REGION_PATTERN.matches(value)
     }
 
     /**
@@ -38,7 +38,7 @@ internal object Ensure {
             return false
         }
 
-        return BUCKET_NAMING_PATTERN.matcher(value).matches()
+        return BUCKET_NAMING_PATTERN.matches(value)
     }
 
     /**

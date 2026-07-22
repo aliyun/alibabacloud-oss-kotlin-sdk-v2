@@ -6,7 +6,6 @@ package com.aliyun.kotlin.sdk.service.oss2.internal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlin.coroutines.EmptyCoroutineContext
@@ -95,7 +94,7 @@ internal class ExpiringValue<T>(val threshold: Duration) {
 
     // / Create task that will return a new version of the value and a date it will expire
     private fun getValueTask(getExpiringValue: suspend () -> Pair<T, Instant>): Deferred<T> {
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
         return scope.async(EmptyCoroutineContext, CoroutineStart.LAZY) {
             updateExpiringValue(getExpiringValue())
         }

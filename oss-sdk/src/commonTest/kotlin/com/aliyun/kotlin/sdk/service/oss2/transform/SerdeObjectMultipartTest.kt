@@ -4,7 +4,7 @@ import com.aliyun.kotlin.sdk.service.oss2.exceptions.DeserializationException
 import com.aliyun.kotlin.sdk.service.oss2.models.CompleteMultipartUpload
 import com.aliyun.kotlin.sdk.service.oss2.models.Part
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -17,7 +17,7 @@ class SerdeObjectMultipartTest {
         assertFailsWith<DeserializationException> { fromXmlInitiateMultipartUpload(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlInitiateMultipartUpload("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlInitiateMultipartUpload("<a></a>".encodeToByteArray()) }
 
         // normal
         // no encoding
@@ -29,7 +29,7 @@ class SerdeObjectMultipartTest {
                 <UploadId>0004B9894A22E5B1888A1E29F823****</UploadId>
             </InitiateMultipartUploadResult>
         """.trimIndent()
-        var result = fromXmlInitiateMultipartUpload(xml.toByteArray())
+        var result = fromXmlInitiateMultipartUpload(xml.encodeToByteArray())
         assertEquals("a%2fmultipart.data", result.key)
         assertEquals("oss-example", result.bucket)
         assertEquals("0004B9894A22E5B1888A1E29F823****", result.uploadId)
@@ -44,21 +44,19 @@ class SerdeObjectMultipartTest {
                 <EncodingType>url</EncodingType>
             </InitiateMultipartUploadResult>
         """.trimIndent()
-        result = fromXmlInitiateMultipartUpload(xml.toByteArray())
+        result = fromXmlInitiateMultipartUpload(xml.encodeToByteArray())
         assertEquals("a/multipart.data", result.key)
         assertEquals("oss-example", result.bucket)
         assertEquals("0004B9894A22E5B1888A1E29F823****", result.uploadId)
     }
 
     @Test
-    fun testToXmlCompleteMultipartUpload() {
+    fun testToXmlCompleteMultipartUpload() = runTest {
         var completeMultipartUpload = CompleteMultipartUpload.Builder().build()
-        runBlocking {
-            assertEquals(
-                "<CompleteMultipartUpload></CompleteMultipartUpload>",
-                String(toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray())
-            )
-        }
+        assertEquals(
+            "<CompleteMultipartUpload></CompleteMultipartUpload>",
+            toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
+        )
 
         val xml = """
             <CompleteMultipartUpload>
@@ -92,12 +90,10 @@ class SerdeObjectMultipartTest {
                 }.build()
             )
         }.build()
-        runBlocking {
-            assertEquals(
-                xml,
-                String(toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray())
-            )
-        }
+        assertEquals(
+            xml,
+            toXmlCompleteMultipartUpload(completeMultipartUpload).toByteArray().decodeToString()
+        )
     }
 
     @Test
@@ -106,7 +102,7 @@ class SerdeObjectMultipartTest {
         assertFailsWith<DeserializationException> { fromXmlCompleteMultipartUpload(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlCompleteMultipartUpload("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlCompleteMultipartUpload("<a></a>".encodeToByteArray()) }
 
         // normal
         // no encoding
@@ -119,7 +115,7 @@ class SerdeObjectMultipartTest {
             <ETag>"B864DB6A936D376F9F8D3ED3BBE540****"</ETag>
             </CompleteMultipartUploadResult>
         """.trimIndent()
-        var result = fromXmlCompleteMultipartUpload(xml.toByteArray())
+        var result = fromXmlCompleteMultipartUpload(xml.encodeToByteArray())
         assertEquals("a%2fmultipart.data", result.key)
         assertEquals("oss-example", result.bucket)
         assertEquals("a", result.encodingType)
@@ -136,7 +132,7 @@ class SerdeObjectMultipartTest {
             <ETag>"B864DB6A936D376F9F8D3ED3BBE540****"</ETag>
             </CompleteMultipartUploadResult>
         """.trimIndent()
-        result = fromXmlCompleteMultipartUpload(xml.toByteArray())
+        result = fromXmlCompleteMultipartUpload(xml.encodeToByteArray())
         assertEquals("a/multipart.data", result.key)
         assertEquals("oss-example", result.bucket)
         assertEquals("url", result.encodingType)
@@ -150,7 +146,7 @@ class SerdeObjectMultipartTest {
         assertFailsWith<DeserializationException> { fromXmlCopyPartResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlCopyPartResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlCopyPartResult("<a></a>".encodeToByteArray()) }
 
         // normal
         val xml = """
@@ -159,7 +155,7 @@ class SerdeObjectMultipartTest {
             <ETag>"5B3C1A2E053D763E1B002CC607C5****"</ETag>
             </CopyPartResult>
         """.trimIndent()
-        val result = fromXmlCopyPartResult(xml.toByteArray())
+        val result = fromXmlCopyPartResult(xml.encodeToByteArray())
         assertEquals("2014-07-17T06:27:54.000Z", result.lastModified)
         assertEquals("\"5B3C1A2E053D763E1B002CC607C5****\"", result.eTag)
     }
@@ -170,7 +166,7 @@ class SerdeObjectMultipartTest {
         assertFailsWith<DeserializationException> { fromXmlListMultipartUploadsResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListMultipartUploadsResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListMultipartUploadsResult("<a></a>".encodeToByteArray()) }
 
         // normal
         // no encoding
@@ -203,7 +199,7 @@ class SerdeObjectMultipartTest {
             </Upload>
             </ListMultipartUploadsResult>
         """.trimIndent()
-        var result = fromXmlListMultipartUploadsResult(xml.toByteArray())
+        var result = fromXmlListMultipartUploadsResult(xml.encodeToByteArray())
         assertEquals("oss-example", result.bucket)
         assertEquals("a%2fb", result.keyMarker)
         assertEquals("uploadIdMarker", result.uploadIdMarker)
@@ -255,7 +251,7 @@ class SerdeObjectMultipartTest {
             </Upload>
             </ListMultipartUploadsResult>
         """.trimIndent()
-        result = fromXmlListMultipartUploadsResult(xml.toByteArray())
+        result = fromXmlListMultipartUploadsResult(xml.encodeToByteArray())
         assertEquals("oss-example", result.bucket)
         assertEquals("a/b", result.keyMarker)
         assertEquals("uploadIdMarker", result.uploadIdMarker)
@@ -284,7 +280,7 @@ class SerdeObjectMultipartTest {
         assertFailsWith<DeserializationException> { fromXmlListPartResult(null) }
 
         // body is unexpected
-        assertFailsWith<DeserializationException> { fromXmlListPartResult("<a></a>".toByteArray()) }
+        assertFailsWith<DeserializationException> { fromXmlListPartResult("<a></a>".encodeToByteArray()) }
 
         // normal
         // no encoding
@@ -317,7 +313,7 @@ class SerdeObjectMultipartTest {
             </Part>
             </ListPartsResult>
         """.trimIndent()
-        var result = fromXmlListPartResult(xml.toByteArray())
+        var result = fromXmlListPartResult(xml.encodeToByteArray())
         assertEquals("multipart_upload", result.bucket)
         assertEquals("a%2fmultipart.data", result.key)
         assertEquals("0004B999EF5A239BB9138C6227D6****", result.uploadId)
@@ -369,7 +365,7 @@ class SerdeObjectMultipartTest {
             </Part>
             </ListPartsResult>
         """.trimIndent()
-        result = fromXmlListPartResult(xml.toByteArray())
+        result = fromXmlListPartResult(xml.encodeToByteArray())
         assertEquals("multipart_upload", result.bucket)
         assertEquals("a/multipart.data", result.key)
         assertEquals("0004B999EF5A239BB9138C6227D6****", result.uploadId)

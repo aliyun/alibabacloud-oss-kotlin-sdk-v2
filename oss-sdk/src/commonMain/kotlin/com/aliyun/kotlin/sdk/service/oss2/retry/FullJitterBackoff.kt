@@ -46,6 +46,6 @@ public class FullJitterBackoff(
     }
 
     override fun toString(): String {
-        return String.format("<FullJitterBackoff, base delay: '%s', max backoff: '%s'>", baseDelay, maxBackoff)
+        return "<FullJitterBackoff, base delay: '$baseDelay', max backoff: '$maxBackoff'>"
     }
 }
