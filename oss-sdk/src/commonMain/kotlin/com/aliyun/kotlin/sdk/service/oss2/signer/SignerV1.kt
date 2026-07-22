@@ -2,9 +2,8 @@
 package com.aliyun.kotlin.sdk.service.oss2.signer
 
 import com.aliyun.kotlin.sdk.service.oss2.hash.hmacSha1
+import com.aliyun.kotlin.sdk.service.oss2.utils.DateUtils
 import com.aliyun.kotlin.sdk.service.oss2.utils.HttpUtils
-import kotlinx.datetime.format
-import kotlinx.datetime.format.DateTimeComponents
 import kotlin.io.encoding.Base64
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -116,7 +115,7 @@ public open class SignerV1 : Signer {
             else -> Instant.fromEpochSeconds(value)
         }
 
-        val dateRfc2822 = datetimeNow.format(DateTimeComponents.Formats.RFC_1123)
+        val dateRfc2822 = DateUtils.formatRfc822Date(datetimeNow)
         request.headers["Date"] = dateRfc2822
         cred.securityToken?.let { request.headers["security-token"] = it }
 

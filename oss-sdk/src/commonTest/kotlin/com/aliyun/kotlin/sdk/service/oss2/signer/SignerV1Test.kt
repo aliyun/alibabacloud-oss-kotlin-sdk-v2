@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class SignerV1Test {
 
@@ -275,5 +276,29 @@ class SignerV1Test {
         )
         assertEquals("token", queries["security-token"])
         assertEquals("VmWfLWfxbR3MSFvUx5%2BnyQhCa3g%3D", queries["Signature"])
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testDateHeaderFormat_singleDigitDayOfMonth() = runTest {
+        val cred: Credentials = Credentials("ak", "sk")
+
+        val request: RequestMessage = RequestMessage().apply {
+            method = "GET"
+            url = "http://examplebucket.oss-cn-hangzhou.aliyuncs.com/test.txt"
+        }
+
+        val context = SigningContext().apply {
+            bucket = "examplebucket"
+            key = "test.txt"
+            this.request = request
+            credentials = cred
+            signTimeInEpoch = Instant.parse("2026-07-01T08:21:54Z").epochSeconds
+        }
+
+        val signer = SignerV1()
+        signer.sign(context)
+
+        assertEquals("Wed, 01 Jul 2026 08:21:54 GMT", request.headers["Date"])
     }
 }

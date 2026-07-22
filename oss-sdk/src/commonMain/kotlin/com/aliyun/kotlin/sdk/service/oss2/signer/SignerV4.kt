@@ -5,6 +5,7 @@ package com.aliyun.kotlin.sdk.service.oss2.signer
 import com.aliyun.kotlin.sdk.service.oss2.hash.hmacSha256
 import com.aliyun.kotlin.sdk.service.oss2.hash.sha256
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
+import com.aliyun.kotlin.sdk.service.oss2.utils.DateUtils
 import com.aliyun.kotlin.sdk.service.oss2.utils.HexUtils
 import com.aliyun.kotlin.sdk.service.oss2.utils.HttpUtils
 import kotlinx.datetime.*
@@ -82,7 +83,7 @@ public open class SignerV4 : Signer {
 
         val now = getSignTime(signingCtx)
         val iso8601Date = now.format(ISO8601_FORMAT)
-        val rfc2822Date = now.format(DateTimeComponents.Formats.RFC_1123)
+        val rfc2822Date = DateUtils.formatRfc822Date(now)
         val date = iso8601Date.substring(0, 8)
 
         val region = signingCtx.region ?: ""
