@@ -25,6 +25,12 @@ public class ListBucketSpacesRequest(builder: Builder) : RequestModel(builder) {
         get() = parameters["continuation-token"]
 
     /**
+     * The name of the bucket space after which the list operation begins.
+     */
+    public val startAfter: String?
+        get() = parameters["start-after"]
+
+    /**
      * The maximum number of results to return.
      */
     public val maxKeys: Long?
@@ -57,6 +63,13 @@ public class ListBucketSpacesRequest(builder: Builder) : RequestModel(builder) {
         public var continuationToken: String?
             set(value) { this.parameters["continuation-token"] = value }
             get() = parameters["continuation-token"]
+
+        /**
+         * The name of the bucket space after which the list operation begins.
+         */
+        public var startAfter: String?
+            set(value) { this.parameters["start-after"] = value }
+            get() = parameters["start-after"]
 
         /**
          * The maximum number of results to return.

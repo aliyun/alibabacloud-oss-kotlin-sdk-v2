@@ -43,6 +43,12 @@ public class ListBucketSpacesResult(builder: Builder) : ResultModel(builder) {
         get() = delegate?.nextContinuationToken
 
     /**
+     * The name of the bucket space after which the list operation began.
+     */
+    public val startAfter: String?
+        get() = delegate?.startAfter
+
+    /**
      * Indicates whether the returned results are truncated.
      */
     public val isTruncated: Boolean?
