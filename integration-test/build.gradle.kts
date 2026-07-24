@@ -79,9 +79,11 @@ fun getBootedOrFirstIPhone(): String {
 }
 
 
-tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
-    standalone.set(false)
-    device.set(getBootedOrFirstIPhone())
+if (org.jetbrains.kotlin.konan.target.HostManager.hostIsMac) {
+    tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+        standalone.set(false)
+        device.set(getBootedOrFirstIPhone())
+    }
 }
 
 android {
