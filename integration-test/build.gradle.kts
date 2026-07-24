@@ -40,6 +40,10 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
+        androidUnitTest.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+
         jsTest.dependencies {
             implementation(libs.ktor.client.js)
         }
