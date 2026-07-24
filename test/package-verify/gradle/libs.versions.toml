@@ -1,0 +1,20 @@
+[versions]
+
+kotlin = "2.2.21"
+kotlinx-coroutines = "1.10.2"
+kotlinx-io = "0.8.0"
+ktor = "3.3.1"
+oss-kotlin-sdk = "+"
+
+[libraries]
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+oss-core = { module = "com.aliyun:kotlin-oss-v2", version.ref = "oss-kotlin-sdk" }
+oss-extension = { module = "com.aliyun:kotlin-oss-v2-extension", version.ref = "oss-kotlin-sdk" }
+
+[plugins]
+
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+
