@@ -1,5 +1,16 @@
 # ChangeLog - Alibaba Cloud OSS SDK for Kotlin v2
 
+## 版本号：0.3.0 日期：2026-07-24
+### 变更内容
+- Feature：Support JS, WasmJs, iOS and macOS multiplatform targets
+- Feature：Add bucket logging api
+- Feature：Add bucket inventory api
+- Feature：Add bucket style api
+- Update：Add hashCrc64ecma field to Part and parse it from ListParts response
+- Update：Add DateUtils for RFC 822 formatter
+- Fix：Fix parsing XML error when the value is empty
+- Fix：Normalize taggingCount header key
+
 ## 版本号：0.2.0 日期：2026-06-29
 ### 变更内容
 - Feature：Add bucket referer api
