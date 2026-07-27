@@ -14,6 +14,16 @@ plugins {
 group = "com.aliyun"
 version = "0.3.0"
 
+val versionDir = layout.buildDirectory.dir("generated/kotlin/com/aliyun/kotlin/sdk/service/oss2").get().asFile
+versionDir.mkdirs()
+File(versionDir, "Version.kt").writeText(
+    """
+    package com.aliyun.kotlin.sdk.service.oss2
+    
+    internal const val SDK_VERSION = "$version"
+    """.trimIndent() + "\n"
+)
+
 tasks.withType<KotlinCompile> {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_1_8
@@ -62,6 +72,7 @@ kotlin {
         }
 
         val commonMain by getting {
+            kotlin.srcDir(layout.buildDirectory.dir("generated/kotlin"))
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.core)

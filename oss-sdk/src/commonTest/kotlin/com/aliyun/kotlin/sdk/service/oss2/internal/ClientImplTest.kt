@@ -13,6 +13,7 @@ import com.aliyun.kotlin.sdk.service.oss2.signer.SignerV1
 import com.aliyun.kotlin.sdk.service.oss2.signer.SignerV4
 import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import com.aliyun.kotlin.sdk.service.oss2.types.AuthMethodType
+import com.aliyun.kotlin.sdk.service.oss2.utils.VersionInfoUtils
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -469,7 +470,7 @@ class ClientImplTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/0.1")
+            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
         }
 
         // set MaxAttempts in configuration
@@ -480,7 +481,7 @@ class ClientImplTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/0.1")
+            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
             assertContains(client.innerOptions.userAgent, "/my-agent")
         }
     }
