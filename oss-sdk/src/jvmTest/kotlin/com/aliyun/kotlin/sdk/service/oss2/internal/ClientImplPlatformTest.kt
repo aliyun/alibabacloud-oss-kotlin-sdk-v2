@@ -4,6 +4,7 @@ import com.aliyun.kotlin.sdk.service.oss2.ClientConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.credentials.AnonymousCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.transport.HttpTransportConfig
 import com.aliyun.kotlin.sdk.service.oss2.transport.customHttpTransport
+import com.aliyun.kotlin.sdk.service.oss2.utils.VersionInfoUtils
 import kotlin.test.Test
 import kotlin.test.assertContains
 
@@ -28,7 +29,7 @@ class ClientImplPlatformTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/0.1")
+            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
             assertContains(client.innerOptions.userAgent, "/okhttp3-client")
         }
     }
@@ -44,7 +45,7 @@ class ClientImplPlatformTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/0.1")
+            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
             assertContains(client.innerOptions.userAgent, "/okhttp3-client")
         }
     }
@@ -63,7 +64,7 @@ class ClientImplPlatformTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/0.1")
+            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
             assertContains(client.innerOptions.userAgent, "/okhttp3-client")
         }
     }
