@@ -30,7 +30,11 @@ internal class AgenticProvider(
         authority = parsed?.get("authority") ?: ""
     }
 
-    private fun fullName(bucket: String): String = "$bucket-$accountId-$region-$suffix"
+    private fun fullName(bucket: String): String {
+        require(accountId.isNotEmpty()) { "missing required field, AccountId" }
+        require(region.isNotEmpty()) { "missing required field, Region" }
+        return "$bucket-$accountId-$region-$suffix"
+    }
 
     override fun buildBucketName(input: OperationInput): String {
         val bucket = input.bucket
@@ -50,7 +54,13 @@ internal class AgenticProvider(
                         paths.add("")
                     }
                 }
-                else -> host = "${fullName(bucket)}.$authority"
+                else -> {
+                    val name = fullName(bucket)
+                    require(name.length <= 63) {
+                        "the host label \"$name\" exceeds the maximum length of 63 characters"
+                    }
+                    host = "$name.$authority"
+                }
             }
         }
 

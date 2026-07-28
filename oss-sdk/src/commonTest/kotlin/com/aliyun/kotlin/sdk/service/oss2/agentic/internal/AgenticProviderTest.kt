@@ -4,6 +4,7 @@ import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AgenticProviderTest {
 
@@ -119,6 +120,72 @@ class AgenticProviderTest {
         assertEquals(
             "https://oss-cn-hangzhou.aliyuncs.com/",
             pathStyleProvider("ab-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testMissingRequiredFields() {
+        val input = OperationInput {
+            opName = "GetAgenticBucket"
+            method = "GET"
+            bucket = "example"
+        }
+
+        // missing accountId
+        val p1 = AgenticProvider(endpoint, accountId = "", region = "cn-hangzhou", suffix = "ab-apsr")
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { p1.buildURL(input) }.message!!.contains("AccountId"))
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { p1.buildBucketName(input) }.message!!.contains("AccountId"))
+
+        // missing region
+        val p2 = AgenticProvider(endpoint, accountId = "1250000000", region = "", suffix = "ab-apsr")
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { p2.buildURL(input) }.message!!.contains("Region"))
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { p2.buildBucketName(input) }.message!!.contains("Region"))
+
+        // no bucket: validation is skipped, no error
+        val noBucket = OperationInput {
+            opName = "ListAgenticBuckets"
+            method = "GET"
+        }
+        assertEquals("", p2.buildBucketName(noBucket))
+    }
+
+    @Test
+    fun testHostLabelTooLong() {
+        // full name = "{bucket}-1250000000-cn-hangzhou-ab-apsr" -> len(bucket) + 31
+        val suffixPart = "-1250000000-cn-hangzhou-ab-apsr"
+
+        // boundary: full name == 63 (bucket 32) is allowed in virtual-hosted style
+        val okName = "a".repeat(32)
+        assertEquals(63, (okName + suffixPart).length)
+        assertEquals(
+            "https://$okName$suffixPart.oss-cn-hangzhou.aliyuncs.com/",
+            provider("ab-apsr").buildURL(OperationInput {
+                opName = "GetAgenticBucket"
+                method = "GET"
+                bucket = okName
+            }),
+        )
+
+        // over limit: full name == 64 (bucket 33) is rejected in virtual-hosted style
+        val longName = "a".repeat(33)
+        assertEquals(64, (longName + suffixPart).length)
+        val ex = assertFailsWith<IllegalArgumentException> {
+            provider("ab-apsr").buildURL(OperationInput {
+                opName = "GetAgenticBucket"
+                method = "GET"
+                bucket = longName
+            })
+        }
+        assertEquals(true, ex.message!!.contains("exceeds the maximum length of 63 characters"))
+
+        // path style has no DNS label limit, so the same long name is fine
+        assertEquals(
+            "https://oss-cn-hangzhou.aliyuncs.com/$longName$suffixPart/",
+            pathStyleProvider("ab-apsr").buildURL(OperationInput {
+                opName = "GetAgenticBucket"
+                method = "GET"
+                bucket = longName
+            }),
         )
     }
 }
