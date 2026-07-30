@@ -67,7 +67,7 @@ internal object OssUtils {
                     }
                 }
                 AddressStyleType.CName -> {}
-                AddressStyleType.VirtualHosted -> host = "${input.bucket}.$host"
+                else -> host = "${input.bucket}.$host"
             }
         }
 
