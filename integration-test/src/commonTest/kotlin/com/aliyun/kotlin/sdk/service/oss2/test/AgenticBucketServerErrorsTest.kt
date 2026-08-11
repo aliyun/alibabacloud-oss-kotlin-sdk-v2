@@ -14,9 +14,10 @@ import kotlin.test.assertTrue
 /**
  * Error propagation with invalid credentials. No bucket is created: every call is expected to fail.
  *
- * The status codes are not uniform, so only Create is pinned: the service answers Create with 403
- * but Get with 404 under an invalid access key, hence the relaxed "some service error with a
- * non-zero status" assertions for the remaining operations.
+ * The status codes are not uniform: Create and ListAgenticBuckets are rejected with 403
+ * InvalidAccessKeyId, while Get answers 404 NoSuchAgenticBucket because the service resolves
+ * bucket existence before it validates the access key. The ec fields are only checked for
+ * presence, they are server-internal diagnostics and not part of the contract.
  */
 class AgenticBucketServerErrorsTest : AgenticTestBase() {
 
@@ -29,29 +30,38 @@ class AgenticBucketServerErrorsTest : AgenticTestBase() {
 
         val bucketName = randomAgenticBucketName()
 
-        // Create: 403 with a request id that identifies the rejected call.
+        // Create: the access key itself is rejected.
         var exception = assertFails {
             invalidAkAgenticClient.createAgenticBucket(CreateAgenticBucketRequest { bucket = bucketName })
         }
         var serviceError = assertNotNull(serviceErrorOf(exception), messageChain(exception))
         assertEquals(403, serviceError.statusCode)
+        assertEquals("InvalidAccessKeyId", serviceError.errorCode)
+        assertTrue(serviceError.ec.isNotEmpty(), "the service error should carry an ec")
         assertTrue(serviceError.requestId.isNotEmpty(), "the service error should carry a request id")
 
-        // Get: answered with 404 rather than 403, so only assert that it failed on the server.
+        // Get: answered with 404 rather than 403, the bucket is resolved before the access key.
         exception = assertFails {
             invalidAkAgenticClient.getAgenticBucket(GetAgenticBucketRequest { bucket = bucketName })
         }
         serviceError = assertNotNull(serviceErrorOf(exception), messageChain(exception))
-        assertTrue(serviceError.statusCode != 0, "expected a server status code")
+        assertEquals(404, serviceError.statusCode)
+        assertEquals("NoSuchAgenticBucket", serviceError.errorCode)
+        assertTrue(serviceError.ec.isNotEmpty(), "the service error should carry an ec")
+        assertTrue(serviceError.requestId.isNotEmpty(), "the service error should carry a request id")
 
         // List.
         exception = assertFails {
             invalidAkAgenticClient.listAgenticBuckets(ListAgenticBucketsRequest {})
         }
         serviceError = assertNotNull(serviceErrorOf(exception), messageChain(exception))
-        assertTrue(serviceError.statusCode != 0, "expected a server status code")
+        assertEquals(403, serviceError.statusCode)
+        assertEquals("InvalidAccessKeyId", serviceError.errorCode)
+        assertTrue(serviceError.ec.isNotEmpty(), "the service error should carry an ec")
+        assertTrue(serviceError.requestId.isNotEmpty(), "the service error should carry a request id")
 
-        // ListBucketSpaces.
+        // ListBucketSpaces: the response identity has not been observed against real hardware,
+        // so only assert that the server rejected the call.
         exception = assertFails {
             invalidAkAgenticClient.listBucketSpaces(ListBucketSpacesRequest { bucket = bucketName })
         }
