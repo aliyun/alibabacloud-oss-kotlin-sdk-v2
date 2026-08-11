@@ -429,6 +429,8 @@ internal class ClientImpl(
             AddressStyleType.CName
         } else if (config.usePathStyle ?: false) {
             AddressStyleType.Path
+        } else if (config.useVirtualHostedAlias ?: false) {
+            AddressStyleType.VirtualHostedAlias
         } else {
             AddressStyleType.VirtualHosted
         }
