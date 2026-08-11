@@ -51,7 +51,7 @@ internal object OssUtils {
      *
      * @param input   Operation input containing bucket and object key information
      * @param baseUrl Base domain or host name
-     * @param style   Address style type (VirtualHosted / Path / CName)
+     * @param style   Address style type (Path / CName, any other style falls back to VirtualHosted)
      * @return Constructed host/path string based on the input and address style
      */
     fun buildHostPath(input: OperationInput, baseUrl: String, style: AddressStyleType): String {
