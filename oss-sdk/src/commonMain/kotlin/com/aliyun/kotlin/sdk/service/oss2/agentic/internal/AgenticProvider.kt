@@ -12,6 +12,9 @@ import com.aliyun.kotlin.sdk.service.oss2.utils.HttpUtils
  *
  * The physical name is `{bucket}-{accountId}-{region}-{suffix}` where suffix is `ab-apsr`
  * for agentic buckets or `bs-apsr` for bucket spaces.
+ *
+ * Under [AddressStyleType.VirtualHostedAlias] the host carries the short label
+ * `{bucket}-alias-{suffix}` instead, while signing keeps the physical name.
  */
 internal class AgenticProvider(
     endpoint: String,
@@ -54,6 +57,13 @@ internal class AgenticProvider(
                         paths.add("")
                     }
                 }
+                AddressStyleType.VirtualHostedAlias -> {
+                    val label = "$bucket-$ALIAS_TOKEN-$suffix"
+                    require(label.length <= 63) {
+                        "the host label \"$label\" exceeds the maximum length of 63 characters"
+                    }
+                    host = "$label.$authority"
+                }
                 else -> {
                     val name = fullName(bucket)
                     require(name.length <= 63) {
@@ -69,5 +79,10 @@ internal class AgenticProvider(
         }
 
         return "$scheme://$host/${paths.joinToString("/")}"
+    }
+
+    private companion object {
+        /** The literal segment that replaces `{accountId}-{region}` in the short host label. */
+        const val ALIAS_TOKEN = "alias"
     }
 }

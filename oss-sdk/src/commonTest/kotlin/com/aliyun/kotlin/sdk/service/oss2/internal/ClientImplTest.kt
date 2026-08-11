@@ -2,6 +2,7 @@ package com.aliyun.kotlin.sdk.service.oss2.internal
 
 import com.aliyun.kotlin.sdk.service.oss2.ClientConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.Defaults
+import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.credentials.AnonymousCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.retry.NopRetryer
 import com.aliyun.kotlin.sdk.service.oss2.retry.StandardRetryer
@@ -242,6 +243,34 @@ class ClientImplTest {
             assertEquals("127.0.0.1", client.innerOptions.host)
             assertEquals("http", client.innerOptions.scheme)
         }
+    }
+
+    @Test
+    fun buildHostPathAddressStyles() {
+        val input = OperationInput {
+            opName = "PutObject"
+            method = "PUT"
+            bucket = "bucket"
+            key = "key"
+        }
+
+        assertEquals(
+            "bucket.oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.VirtualHosted),
+        )
+        assertEquals(
+            "oss-cn-hangzhou.aliyuncs.com/bucket/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.Path),
+        )
+        assertEquals(
+            "oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.CName),
+        )
+        // VirtualHostedAlias is agentic-only, the plain client falls back to virtual-hosted
+        assertEquals(
+            "bucket.oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.VirtualHostedAlias),
+        )
     }
 
     @Test

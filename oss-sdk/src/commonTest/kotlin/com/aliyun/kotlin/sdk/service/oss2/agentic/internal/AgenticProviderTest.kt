@@ -16,6 +16,9 @@ class AgenticProviderTest {
     private fun pathStyleProvider(suffix: String) =
         AgenticProvider(endpoint, accountId = "1250000000", region = "cn-hangzhou", suffix = suffix, addressStyle = AddressStyleType.Path)
 
+    private fun aliasStyleProvider(suffix: String, accountId: String = "1250000000", region: String = "cn-hangzhou") =
+        AgenticProvider(endpoint, accountId = accountId, region = region, suffix = suffix, addressStyle = AddressStyleType.VirtualHostedAlias)
+
     @Test
     fun testBuildBucketNameAgentic() {
         val input = OperationInput {
@@ -121,6 +124,97 @@ class AgenticProviderTest {
             "https://oss-cn-hangzhou.aliyuncs.com/",
             pathStyleProvider("ab-apsr").buildURL(input),
         )
+    }
+
+    @Test
+    fun testBuildUrlAliasStyleWithBucketNoKey() {
+        val input = OperationInput {
+            opName = "GetAgenticBucket"
+            method = "GET"
+            bucket = "example"
+        }
+        assertEquals(
+            "https://example-alias-ab-apsr.oss-cn-hangzhou.aliyuncs.com/",
+            aliasStyleProvider("ab-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testBuildUrlAliasStyleWithBucketAndKey() {
+        val input = OperationInput {
+            opName = "PutObject"
+            method = "PUT"
+            bucket = "space"
+            key = "dir/obj.txt"
+        }
+        assertEquals(
+            "https://space-alias-bs-apsr.oss-cn-hangzhou.aliyuncs.com/dir/obj.txt",
+            aliasStyleProvider("bs-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testBuildUrlAliasStyleNoBucket() {
+        val input = OperationInput {
+            opName = "ListAgenticBuckets"
+            method = "GET"
+        }
+        assertEquals(
+            "https://oss-cn-hangzhou.aliyuncs.com/",
+            aliasStyleProvider("ab-apsr").buildURL(input),
+        )
+    }
+
+    @Test
+    fun testAliasStyleSignsWithFullName() {
+        val input = OperationInput {
+            opName = "GetAgenticBucket"
+            method = "GET"
+            bucket = "example"
+        }
+
+        // the short label only shows up in the host, signing keeps the full name
+        assertEquals(
+            "example-1250000000-cn-hangzhou-ab-apsr",
+            aliasStyleProvider("ab-apsr").buildBucketName(input),
+        )
+
+        // so accountId / region stay required
+        val noAccount = aliasStyleProvider("ab-apsr", accountId = "")
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { noAccount.buildBucketName(input) }.message!!.contains("AccountId"))
+
+        val noRegion = aliasStyleProvider("ab-apsr", region = "")
+        assertEquals(true, assertFailsWith<IllegalArgumentException> { noRegion.buildBucketName(input) }.message!!.contains("Region"))
+    }
+
+    @Test
+    fun testAliasHostLabelTooLong() {
+        // alias label = "{bucket}-alias-ab-apsr" -> len(bucket) + 14
+        val suffixPart = "-alias-ab-apsr"
+
+        // boundary: label == 63 (bucket 49) is allowed, far more room than the full name has
+        val okName = "a".repeat(49)
+        assertEquals(63, (okName + suffixPart).length)
+        assertEquals(
+            "https://$okName$suffixPart.oss-cn-hangzhou.aliyuncs.com/",
+            aliasStyleProvider("ab-apsr").buildURL(OperationInput {
+                opName = "GetAgenticBucket"
+                method = "GET"
+                bucket = okName
+            }),
+        )
+
+        // over limit: label == 64 (bucket 50) is rejected
+        val longName = "a".repeat(50)
+        assertEquals(64, (longName + suffixPart).length)
+        val ex = assertFailsWith<IllegalArgumentException> {
+            aliasStyleProvider("ab-apsr").buildURL(OperationInput {
+                opName = "GetAgenticBucket"
+                method = "GET"
+                bucket = longName
+            })
+        }
+        assertEquals(true, ex.message!!.contains("exceeds the maximum length of 63 characters"))
     }
 
     @Test
