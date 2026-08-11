@@ -84,6 +84,11 @@ public class ClientConfiguration(
     public var usePathStyle: Boolean? = null,
 
     /**
+     * If the endpoint is a short-alias host, set this flag to true
+     */
+    public var useVirtualHostedAlias: Boolean? = null,
+
+    /**
      * HTTP transmitter, responsible for sending HTTP requests
      */
     public var httpTransport: HttpTransport? = null,

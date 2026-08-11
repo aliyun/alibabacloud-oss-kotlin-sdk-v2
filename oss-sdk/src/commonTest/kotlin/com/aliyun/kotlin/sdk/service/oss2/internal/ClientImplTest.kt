@@ -228,6 +228,19 @@ class ClientImplTest {
             assertEquals(AddressStyleType.Path, client.options.addressStyle)
         }
 
+        // virtual-hosted-alias
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            useVirtualHostedAlias = true
+        }
+
+        ClientImpl(config).use { client ->
+            assertNull(config.endpoint)
+            assertNotNull(client.options.endpoint)
+            assertEquals(AddressStyleType.VirtualHostedAlias, client.options.addressStyle)
+        }
+
         // ip endpoint
         config = ClientConfiguration().apply {
             region = "cn-hangzhou"
