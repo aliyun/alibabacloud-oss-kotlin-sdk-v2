@@ -46,7 +46,15 @@ fun runCli(args: Array<String>) {
         PutObjectTagging(),
         GetObjectTagging(),
         DeleteObjectTagging(),
-        Presign()
+        Presign(),
+        CreateAgenticBucket(),
+        DeleteAgenticBucket(),
+        GetAgenticBucket(),
+        ListAgenticBuckets(),
+        PutAgenticBucketStatus(),
+        ListBucketSpaces(),
+        CreateBucketSpace(),
+        BucketSpace()
     )
     parser.parse(args)
 }

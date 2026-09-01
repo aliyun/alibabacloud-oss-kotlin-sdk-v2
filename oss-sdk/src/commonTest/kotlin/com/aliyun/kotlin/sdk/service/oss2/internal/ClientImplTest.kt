@@ -2,6 +2,7 @@ package com.aliyun.kotlin.sdk.service.oss2.internal
 
 import com.aliyun.kotlin.sdk.service.oss2.ClientConfiguration
 import com.aliyun.kotlin.sdk.service.oss2.Defaults
+import com.aliyun.kotlin.sdk.service.oss2.OperationInput
 import com.aliyun.kotlin.sdk.service.oss2.credentials.AnonymousCredentialsProvider
 import com.aliyun.kotlin.sdk.service.oss2.retry.NopRetryer
 import com.aliyun.kotlin.sdk.service.oss2.retry.StandardRetryer
@@ -227,6 +228,19 @@ class ClientImplTest {
             assertEquals(AddressStyleType.Path, client.options.addressStyle)
         }
 
+        // virtual-hosted-alias
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            useVirtualHostedAlias = true
+        }
+
+        ClientImpl(config).use { client ->
+            assertNull(config.endpoint)
+            assertNotNull(client.options.endpoint)
+            assertEquals(AddressStyleType.VirtualHostedAlias, client.options.addressStyle)
+        }
+
         // ip endpoint
         config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -242,6 +256,34 @@ class ClientImplTest {
             assertEquals("127.0.0.1", client.innerOptions.host)
             assertEquals("http", client.innerOptions.scheme)
         }
+    }
+
+    @Test
+    fun buildHostPathAddressStyles() {
+        val input = OperationInput {
+            opName = "PutObject"
+            method = "PUT"
+            bucket = "bucket"
+            key = "key"
+        }
+
+        assertEquals(
+            "bucket.oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.VirtualHosted),
+        )
+        assertEquals(
+            "oss-cn-hangzhou.aliyuncs.com/bucket/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.Path),
+        )
+        assertEquals(
+            "oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.CName),
+        )
+        // VirtualHostedAlias is agentic-only, the plain client falls back to virtual-hosted
+        assertEquals(
+            "bucket.oss-cn-hangzhou.aliyuncs.com/key",
+            OssUtils.buildHostPath(input, "oss-cn-hangzhou.aliyuncs.com", AddressStyleType.VirtualHostedAlias),
+        )
     }
 
     @Test
@@ -339,6 +381,60 @@ class ClientImplTest {
         ClientImpl(config).use { client ->
             assertTrue { client.options.retryer is StandardRetryer }
             assertEquals(6, client.options.retryer.maxAttempts())
+        }
+    }
+
+    @Test
+    fun configAccountId() {
+        // null account id -> no init error
+        var config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // empty account id -> no init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = ""
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // valid numeric account id -> no init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "1234567890"
+        }
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+
+        // invalid account id with letters -> deferred init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "abc123"
+        }
+        ClientImpl(config).use { client ->
+            assertNotNull(client.innerOptions.initError)
+            assertContains(client.innerOptions.initError!!.message ?: "", "invalid account id")
+        }
+
+        // invalid account id with special characters -> deferred init error
+        config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = AnonymousCredentialsProvider()
+            accountId = "123-456"
+        }
+        ClientImpl(config).use { client ->
+            assertNotNull(client.innerOptions.initError)
+            assertContains(client.innerOptions.initError!!.message ?: "", "invalid account id")
         }
     }
 

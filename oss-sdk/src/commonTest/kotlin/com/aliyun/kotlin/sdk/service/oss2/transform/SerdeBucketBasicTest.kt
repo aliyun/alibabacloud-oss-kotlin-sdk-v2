@@ -411,6 +411,8 @@ class SerdeBucketBasicTest {
             <TransferAcceleration>Disabled</TransferAcceleration>
             <CrossRegionReplication>Disabled</CrossRegionReplication>
             <Name>oss-example</Name>
+            <BucketResourceType>AgenticBucketSpace</BucketResourceType>
+            <AgenticBucketName>agentic-example</AgenticBucketName>
             <ResourceGroupId>rg-aek27tc********</ResourceGroupId>
             <Owner>
             <DisplayName>username</DisplayName>
@@ -445,6 +447,8 @@ class SerdeBucketBasicTest {
         assertEquals("Disabled", result.bucket?.transferAcceleration)
         assertEquals("Disabled", result.bucket?.crossRegionReplication)
         assertEquals("oss-example", result.bucket?.name)
+        assertEquals("AgenticBucketSpace", result.bucket?.bucketResourceType)
+        assertEquals("agentic-example", result.bucket?.agenticBucketName)
         assertEquals("rg-aek27tc********", result.bucket?.resourceGroupId)
         assertEquals("27183473914****", result.bucket?.owner?.id)
         assertEquals("username", result.bucket?.owner?.displayName)
