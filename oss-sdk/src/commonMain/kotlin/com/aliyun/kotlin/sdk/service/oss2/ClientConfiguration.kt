@@ -14,6 +14,11 @@ public class ClientConfiguration(
     public var region: String? = null,
 
     /**
+     * The Alibaba Cloud account ID, used by clients that resolve physical bucket names.
+     */
+    public var accountId: String? = null,
+
+    /**
      * The domain names that other services can use to access OSS.
      */
     public var endpoint: String? = null,
@@ -77,6 +82,11 @@ public class ClientConfiguration(
      * Use the path style request mode, where the bucket name is placed in the path. Default value is false
      */
     public var usePathStyle: Boolean? = null,
+
+    /**
+     * If the endpoint is a short-alias host, set this flag to true
+     */
+    public var useVirtualHostedAlias: Boolean? = null,
 
     /**
      * HTTP transmitter, responsible for sending HTTP requests

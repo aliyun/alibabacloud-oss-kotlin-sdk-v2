@@ -103,6 +103,16 @@ public class Bucket(builder: Builder) {
      */
     public val name: String? = builder.name
 
+    /**
+     * The resource type of the bucket. Valid values include AgenticBucket and AgenticBucketSpace.
+     */
+    public val bucketResourceType: String? = builder.bucketResourceType
+
+    /**
+     * The name of the agentic bucket that the bucket space belongs to.
+     */
+    public val agenticBucketName: String? = builder.agenticBucketName
+
     public constructor() : this(Builder())
 
     public companion object {
@@ -209,6 +219,16 @@ public class Bucket(builder: Builder) {
          * The name of the bucket.
          */
         public var name: String? = null
+
+        /**
+         * The resource type of the bucket. Valid values include AgenticBucket and AgenticBucketSpace.
+         */
+        public var bucketResourceType: String? = null
+
+        /**
+         * The name of the agentic bucket that the bucket space belongs to.
+         */
+        public var agenticBucketName: String? = null
 
         public fun build(): Bucket {
             return Bucket(this)

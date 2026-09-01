@@ -64,8 +64,8 @@ internal object BucketBasic {
                 put("Content-Type", "application/xml")
             }
             bucket = request.bucket
-            // body
-            body = toXmlCreateBucketConfiguration(request.createBucketConfiguration)
+            // body: omit when no configuration is provided (agentic bucket space creation rejects a body)
+            body = request.createBucketConfiguration?.let { toXmlCreateBucketConfiguration(it) }
         }
 
         // opMetadata

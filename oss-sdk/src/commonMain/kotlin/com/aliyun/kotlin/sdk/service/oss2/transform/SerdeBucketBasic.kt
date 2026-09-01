@@ -440,6 +440,14 @@ internal fun fromXmlBucketInfo(data: ByteArray?): BucketInfo {
                             result.name = it0.value.first().text
                         }
 
+                        "BucketResourceType" -> {
+                            result.bucketResourceType = it0.value.first().text
+                        }
+
+                        "AgenticBucketName" -> {
+                            result.agenticBucketName = it0.value.first().text
+                        }
+
                         "ResourceGroupId" -> {
                             result.resourceGroupId = it0.value.first().text
                         }

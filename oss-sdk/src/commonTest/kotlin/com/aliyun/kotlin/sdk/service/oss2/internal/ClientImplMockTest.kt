@@ -232,6 +232,85 @@ class ClientImplMockTest {
     }
 
     @Test
+    fun invokeOperationInvalidAccountId() = runTest {
+        val mockHandler = MockHttpClient()
+
+        val config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = StaticCredentialsProvider("ak", "sk")
+            accountId = "abc"
+            httpTransport = mockHandler
+        }
+
+        mockHandler.clear()
+        mockHandler.responses = mutableListOf()
+
+        ClientImpl(config).use { client ->
+            assertNotNull(client.innerOptions.initError)
+
+            val input = OperationInput.build {
+                opName = "ListBuckets"
+                method = "GET"
+            }
+
+            try {
+                client.execute(input, OperationOptions.Default)
+                assertFails { "should not here" }
+            } catch (e: IllegalArgumentException) {
+                assertContains(e.message ?: "", "invalid account id")
+                // the error must short-circuit before any request reaches the transport
+                assertNull(mockHandler.requests)
+            }
+        }
+    }
+
+    @Test
+    fun invokeOperationValidAccountId() = runTest {
+        val mockHandler = MockHttpClient()
+
+        val config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = StaticCredentialsProvider("ak", "sk")
+            accountId = "1234567890"
+            httpTransport = mockHandler
+        }
+
+        mockHandler.clear()
+        mockHandler.responses = mutableListOf()
+        mockHandler.responses!!.add(ResponseMessage(statusCode = 200, body = "".asByteStream()))
+
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+
+            val input = OperationInput.build {
+                opName = "ListBuckets"
+                method = "GET"
+            }
+
+            val output = client.execute(input, OperationOptions.Default)
+            assertNotNull(mockHandler.requests)
+            assertEquals(1, mockHandler.requests!!.size)
+            assertEquals(200, output.statusCode)
+        }
+    }
+
+    @Test
+    fun invokeOperationEmptyAccountId() {
+        val mockHandler = MockHttpClient()
+
+        val config = ClientConfiguration().apply {
+            region = "cn-hangzhou"
+            credentialsProvider = StaticCredentialsProvider("ak", "sk")
+            accountId = ""
+            httpTransport = mockHandler
+        }
+
+        ClientImpl(config).use { client ->
+            assertNull(client.innerOptions.initError)
+        }
+    }
+
+    @Test
     fun verifyExecuteArgsInvalidEndpoint() = runTest {
         val mockHandler = MockHttpClient()
 
