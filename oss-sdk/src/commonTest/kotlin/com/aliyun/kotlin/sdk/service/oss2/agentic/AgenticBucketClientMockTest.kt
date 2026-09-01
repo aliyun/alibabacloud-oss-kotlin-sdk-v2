@@ -15,7 +15,7 @@ import com.aliyun.kotlin.sdk.service.oss2.transport.RequestMessage
 import com.aliyun.kotlin.sdk.service.oss2.transport.RequestOptions
 import com.aliyun.kotlin.sdk.service.oss2.transport.ResponseMessage
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -56,12 +56,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun createAgenticBucket() {
+    fun createAgenticBucket() = runTest {
         val transport = UrlCaptureTransport()
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.createAgenticBucket(CreateAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.createAgenticBucket(CreateAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertEquals("PUT", transport.requestMethod)
         assertEquals(
@@ -71,12 +69,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun deleteAgenticBucket() {
+    fun deleteAgenticBucket() = runTest {
         val transport = UrlCaptureTransport()
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.deleteAgenticBucket(DeleteAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.deleteAgenticBucket(DeleteAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertEquals("DELETE", transport.requestMethod)
         assertEquals(
@@ -86,12 +82,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun getAgenticBucket() {
+    fun getAgenticBucket() = runTest {
         val transport = UrlCaptureTransport("<AgenticBucketInfo></AgenticBucketInfo>")
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertEquals("GET", transport.requestMethod)
         assertEquals(
@@ -101,12 +95,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun listAgenticBuckets() {
+    fun listAgenticBuckets() = runTest {
         val transport = UrlCaptureTransport("<ListAgenticBucketsResult></ListAgenticBucketsResult>")
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.listAgenticBuckets(ListAgenticBucketsRequest {})
-            }
+            client.listAgenticBuckets(ListAgenticBucketsRequest {})
         }
         assertEquals("GET", transport.requestMethod)
         assertEquals(
@@ -116,17 +108,15 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun putAgenticBucketStatus() {
+    fun putAgenticBucketStatus() = runTest {
         val transport = UrlCaptureTransport()
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.putAgenticBucketStatus(
-                    PutAgenticBucketStatusRequest {
-                        bucket = "my-agentic"
-                        agenticBucketStatus = AgenticBucketStatus { status = "enabled" }
-                    },
-                )
-            }
+            client.putAgenticBucketStatus(
+                PutAgenticBucketStatusRequest {
+                    bucket = "my-agentic"
+                    agenticBucketStatus = AgenticBucketStatus { status = "enabled" }
+                },
+            )
         }
         assertEquals("PUT", transport.requestMethod)
         assertBaseAndParams(
@@ -137,12 +127,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun listBucketSpaces() {
+    fun listBucketSpaces() = runTest {
         val transport = UrlCaptureTransport("<ListBucketSpacesResult></ListBucketSpacesResult>")
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.listBucketSpaces(ListBucketSpacesRequest { bucket = "my-agentic" })
-            }
+            client.listBucketSpaces(ListBucketSpacesRequest { bucket = "my-agentic" })
         }
         assertEquals("GET", transport.requestMethod)
         assertBaseAndParams(
@@ -153,12 +141,10 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun regionInUrl() {
+    fun regionInUrl() = runTest {
         val transport = UrlCaptureTransport("<AgenticBucketInfo></AgenticBucketInfo>")
         AgenticBucketClient(agenticConfig("cn-shanghai", "999888", transport)).use { client ->
-            runBlocking {
-                client.getAgenticBucket(GetAgenticBucketRequest { bucket = "test-bucket" })
-            }
+            client.getAgenticBucket(GetAgenticBucketRequest { bucket = "test-bucket" })
         }
         assertEquals(
             "https://test-bucket-999888-cn-shanghai-ab-apsr.oss-cn-shanghai.aliyuncs.com/?agenticBucket=",
@@ -167,7 +153,7 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun bucketSpaceClientPutObject() {
+    fun bucketSpaceClientPutObject() = runTest {
         val transport = UrlCaptureTransport()
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -177,16 +163,14 @@ class AgenticBucketClientMockTest {
             httpTransport = transport
         }
         BucketSpaceClient.create(config).use { client ->
-            runBlocking {
-                client.invokeOperation(
-                    OperationInput {
-                        opName = "PutObject"
-                        method = "PUT"
-                        bucket = "my-space"
-                        key = "test.txt"
-                    },
-                )
-            }
+            client.invokeOperation(
+                OperationInput {
+                    opName = "PutObject"
+                    method = "PUT"
+                    bucket = "my-space"
+                    key = "test.txt"
+                },
+            )
         }
         assertEquals("PUT", transport.requestMethod)
         assertEquals(
@@ -196,7 +180,7 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun bucketSpaceClientPutObjectInternal() {
+    fun bucketSpaceClientPutObjectInternal() = runTest {
         val transport = UrlCaptureTransport()
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -206,16 +190,14 @@ class AgenticBucketClientMockTest {
             httpTransport = transport
         }
         BucketSpaceClient.create(config).use { client ->
-            runBlocking {
-                client.invokeOperation(
-                    OperationInput {
-                        opName = "PutObject"
-                        method = "PUT"
-                        bucket = "my-space"
-                        key = "test.txt"
-                    },
-                )
-            }
+            client.invokeOperation(
+                OperationInput {
+                    opName = "PutObject"
+                    method = "PUT"
+                    bucket = "my-space"
+                    key = "test.txt"
+                },
+            )
         }
         assertEquals(
             "https://my-space-123456-cn-hangzhou-bs-apsr.oss-cn-hangzhou-internal.aliyuncs.com/test.txt",
@@ -224,13 +206,11 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun getAgenticBucketPathStyle() {
+    fun getAgenticBucketPathStyle() = runTest {
         val transport = UrlCaptureTransport("<AgenticBucketInfo></AgenticBucketInfo>")
         val config = agenticConfig("cn-hangzhou", "123456", transport).apply { usePathStyle = true }
         AgenticBucketClient(config).use { client ->
-            runBlocking {
-                client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertEquals("GET", transport.requestMethod)
         assertEquals(
@@ -240,13 +220,11 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun listAgenticBucketsPathStyle() {
+    fun listAgenticBucketsPathStyle() = runTest {
         val transport = UrlCaptureTransport("<ListAgenticBucketsResult></ListAgenticBucketsResult>")
         val config = agenticConfig("cn-hangzhou", "123456", transport).apply { usePathStyle = true }
         AgenticBucketClient(config).use { client ->
-            runBlocking {
-                client.listAgenticBuckets(ListAgenticBucketsRequest {})
-            }
+            client.listAgenticBuckets(ListAgenticBucketsRequest {})
         }
         assertEquals(
             "https://oss-cn-hangzhou.aliyuncs.com/?agenticBucket=",
@@ -255,7 +233,7 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun bucketSpaceClientPutObjectPathStyle() {
+    fun bucketSpaceClientPutObjectPathStyle() = runTest {
         val transport = UrlCaptureTransport()
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -265,16 +243,14 @@ class AgenticBucketClientMockTest {
             httpTransport = transport
         }
         BucketSpaceClient.create(config).use { client ->
-            runBlocking {
-                client.invokeOperation(
-                    OperationInput {
-                        opName = "PutObject"
-                        method = "PUT"
-                        bucket = "my-space"
-                        key = "test.txt"
-                    },
-                )
-            }
+            client.invokeOperation(
+                OperationInput {
+                    opName = "PutObject"
+                    method = "PUT"
+                    bucket = "my-space"
+                    key = "test.txt"
+                },
+            )
         }
         assertEquals("PUT", transport.requestMethod)
         assertEquals(
@@ -284,13 +260,11 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun getAgenticBucketVirtualHostedAlias() {
+    fun getAgenticBucketVirtualHostedAlias() = runTest {
         val transport = UrlCaptureTransport("<AgenticBucketInfo></AgenticBucketInfo>")
         val config = agenticConfig("cn-hangzhou", "123456", transport).apply { useVirtualHostedAlias = true }
         AgenticBucketClient(config).use { client ->
-            runBlocking {
-                client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertEquals("GET", transport.requestMethod)
         assertEquals(
@@ -300,13 +274,11 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun listAgenticBucketsVirtualHostedAlias() {
+    fun listAgenticBucketsVirtualHostedAlias() = runTest {
         val transport = UrlCaptureTransport("<ListAgenticBucketsResult></ListAgenticBucketsResult>")
         val config = agenticConfig("cn-hangzhou", "123456", transport).apply { useVirtualHostedAlias = true }
         AgenticBucketClient(config).use { client ->
-            runBlocking {
-                client.listAgenticBuckets(ListAgenticBucketsRequest {})
-            }
+            client.listAgenticBuckets(ListAgenticBucketsRequest {})
         }
         assertEquals(
             "https://oss-cn-hangzhou.aliyuncs.com/?agenticBucket=",
@@ -315,7 +287,7 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun bucketSpaceClientPutObjectVirtualHostedAlias() {
+    fun bucketSpaceClientPutObjectVirtualHostedAlias() = runTest {
         val transport = UrlCaptureTransport()
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -325,16 +297,14 @@ class AgenticBucketClientMockTest {
             httpTransport = transport
         }
         BucketSpaceClient.create(config).use { client ->
-            runBlocking {
-                client.invokeOperation(
-                    OperationInput {
-                        opName = "PutObject"
-                        method = "PUT"
-                        bucket = "my-space"
-                        key = "test.txt"
-                    },
-                )
-            }
+            client.invokeOperation(
+                OperationInput {
+                    opName = "PutObject"
+                    method = "PUT"
+                    bucket = "my-space"
+                    key = "test.txt"
+                },
+            )
         }
         assertEquals("PUT", transport.requestMethod)
         assertEquals(
@@ -344,18 +314,16 @@ class AgenticBucketClientMockTest {
     }
 
     @Test
-    fun agenticClientUserAgent() {
+    fun agenticClientUserAgent() = runTest {
         val transport = UrlCaptureTransport("<AgenticBucketInfo></AgenticBucketInfo>")
         AgenticBucketClient(agenticConfig("cn-hangzhou", "123456", transport)).use { client ->
-            runBlocking {
-                client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
-            }
+            client.getAgenticBucket(GetAgenticBucketRequest { bucket = "my-agentic" })
         }
         assertContains(transport.userAgent, "agentic-client")
     }
 
     @Test
-    fun bucketSpaceClientUserAgent() {
+    fun bucketSpaceClientUserAgent() = runTest {
         val transport = UrlCaptureTransport()
         val config = ClientConfiguration().apply {
             region = "cn-hangzhou"
@@ -365,16 +333,14 @@ class AgenticBucketClientMockTest {
             httpTransport = transport
         }
         BucketSpaceClient.create(config).use { client ->
-            runBlocking {
-                client.invokeOperation(
-                    OperationInput {
-                        opName = "PutObject"
-                        method = "PUT"
-                        bucket = "my-space"
-                        key = "test.txt"
-                    },
-                )
-            }
+            client.invokeOperation(
+                OperationInput {
+                    opName = "PutObject"
+                    method = "PUT"
+                    bucket = "my-space"
+                    key = "test.txt"
+                },
+            )
         }
         assertContains(transport.userAgent, "agentic-client")
     }

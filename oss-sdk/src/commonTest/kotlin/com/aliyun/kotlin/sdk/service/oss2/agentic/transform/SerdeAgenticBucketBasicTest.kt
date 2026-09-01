@@ -37,7 +37,7 @@ class SerdeAgenticBucketBasicTest {
         assertEquals("", input.parameters["agenticBucket"])
         assertEquals("application/xml", input.headers["Content-Type"])
         assertNotNull(input.headers["Content-MD5"])
-        val body = String(input.body!!.toByteArray())
+        val body = input.body!!.toByteArray().decodeToString()
         assertTrue(body.contains("<CreateAgenticBucketConfiguration>"))
         assertTrue(body.contains("<StorageClass>Standard</StorageClass>"))
         assertTrue(body.contains("<DataRedundancyType>LRS</DataRedundancyType>"))
@@ -98,7 +98,7 @@ class SerdeAgenticBucketBasicTest {
         assertEquals("PUT", input.method)
         assertEquals("", input.parameters["agenticBucket"])
         assertEquals("", input.parameters["status"])
-        val body = String(input.body!!.toByteArray())
+        val body = input.body!!.toByteArray().decodeToString()
         assertEquals("<AgenticBucketStatus><Status>Enabled</Status></AgenticBucketStatus>", body)
     }
 

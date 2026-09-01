@@ -40,12 +40,12 @@ public class PutBucketRequest(builder: Builder) : RequestModel(builder) {
     public val bucketTagging: String?
         get() = headers["x-oss-bucket-tagging"]
 
-
     /**
      * The agentic bucket name.
      */
     public val agenticBucket: String?
         get() = headers["x-oss-agentic-bucket"]
+
     /**
      * The container that stores the request body.
      */
@@ -102,7 +102,6 @@ public class PutBucketRequest(builder: Builder) : RequestModel(builder) {
             }
             get() = headers["x-oss-bucket-tagging"]
 
-
         /**
          * The agentic bucket name.
          */
@@ -111,6 +110,7 @@ public class PutBucketRequest(builder: Builder) : RequestModel(builder) {
                 value?.let { this.headers["x-oss-agentic-bucket"] = it }
             }
             get() = headers["x-oss-agentic-bucket"]
+
         /**
          * The container that stores the request body.
          */

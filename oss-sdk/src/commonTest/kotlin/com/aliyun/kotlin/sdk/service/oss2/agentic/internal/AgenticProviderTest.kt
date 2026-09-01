@@ -197,22 +197,26 @@ class AgenticProviderTest {
         assertEquals(63, (okName + suffixPart).length)
         assertEquals(
             "https://$okName$suffixPart.oss-cn-hangzhou.aliyuncs.com/",
-            aliasStyleProvider("ab-apsr").buildURL(OperationInput {
-                opName = "GetAgenticBucket"
-                method = "GET"
-                bucket = okName
-            }),
+            aliasStyleProvider("ab-apsr").buildURL(
+                OperationInput {
+                    opName = "GetAgenticBucket"
+                    method = "GET"
+                    bucket = okName
+                }
+            ),
         )
 
         // over limit: label == 64 (bucket 50) is rejected
         val longName = "a".repeat(50)
         assertEquals(64, (longName + suffixPart).length)
         val ex = assertFailsWith<IllegalArgumentException> {
-            aliasStyleProvider("ab-apsr").buildURL(OperationInput {
-                opName = "GetAgenticBucket"
-                method = "GET"
-                bucket = longName
-            })
+            aliasStyleProvider("ab-apsr").buildURL(
+                OperationInput {
+                    opName = "GetAgenticBucket"
+                    method = "GET"
+                    bucket = longName
+                }
+            )
         }
         assertEquals(true, ex.message!!.contains("exceeds the maximum length of 63 characters"))
     }
@@ -253,33 +257,39 @@ class AgenticProviderTest {
         assertEquals(63, (okName + suffixPart).length)
         assertEquals(
             "https://$okName$suffixPart.oss-cn-hangzhou.aliyuncs.com/",
-            provider("ab-apsr").buildURL(OperationInput {
-                opName = "GetAgenticBucket"
-                method = "GET"
-                bucket = okName
-            }),
+            provider("ab-apsr").buildURL(
+                OperationInput {
+                    opName = "GetAgenticBucket"
+                    method = "GET"
+                    bucket = okName
+                }
+            ),
         )
 
         // over limit: full name == 64 (bucket 33) is rejected in virtual-hosted style
         val longName = "a".repeat(33)
         assertEquals(64, (longName + suffixPart).length)
         val ex = assertFailsWith<IllegalArgumentException> {
-            provider("ab-apsr").buildURL(OperationInput {
-                opName = "GetAgenticBucket"
-                method = "GET"
-                bucket = longName
-            })
+            provider("ab-apsr").buildURL(
+                OperationInput {
+                    opName = "GetAgenticBucket"
+                    method = "GET"
+                    bucket = longName
+                }
+            )
         }
         assertEquals(true, ex.message!!.contains("exceeds the maximum length of 63 characters"))
 
         // path style has no DNS label limit, so the same long name is fine
         assertEquals(
             "https://oss-cn-hangzhou.aliyuncs.com/$longName$suffixPart/",
-            pathStyleProvider("ab-apsr").buildURL(OperationInput {
-                opName = "GetAgenticBucket"
-                method = "GET"
-                bucket = longName
-            }),
+            pathStyleProvider("ab-apsr").buildURL(
+                OperationInput {
+                    opName = "GetAgenticBucket"
+                    method = "GET"
+                    bucket = longName
+                }
+            ),
         )
     }
 }

@@ -32,14 +32,18 @@ public class ListAgenticBucketsRequest(builder: Builder) : RequestModel(builder)
          * The token from which the list operation continues.
          */
         public var continuationToken: String?
-            set(value) { this.parameters["continuation-token"] = value }
+            set(value) {
+                this.parameters["continuation-token"] = value
+            }
             get() = parameters["continuation-token"]
 
         /**
          * The maximum number of results to return.
          */
         public var maxKeys: Long?
-            set(value) { this.parameters["max-keys"] = value?.toString() }
+            set(value) {
+                this.parameters["max-keys"] = value?.toString()
+            }
             get() = parameters["max-keys"]?.toLongOrNull()
 
         public fun build(): ListAgenticBucketsRequest {
