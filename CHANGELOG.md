@@ -1,5 +1,10 @@
 # ChangeLog - Alibaba Cloud OSS SDK for Kotlin v2
 
+## 版本号：0.4.0 日期：2026-09-01
+### 变更内容
+- Feature：Add agentic bucket
+- Fix：Report the real SDK version in the user agent
+
 ## 版本号：0.3.0 日期：2026-07-24
 ### 变更内容
 - Feature：Support JS, WasmJs, iOS and macOS multiplatform targets

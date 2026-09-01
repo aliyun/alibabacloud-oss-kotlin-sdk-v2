@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.aliyun"
-version = "0.3.0"
+version = "0.4.0"
 
 val generateVersionSource by tasks.registering {
     val sdkVersion = version.toString()
