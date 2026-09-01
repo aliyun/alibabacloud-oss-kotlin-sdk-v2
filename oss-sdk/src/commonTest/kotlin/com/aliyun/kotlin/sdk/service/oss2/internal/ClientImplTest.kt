@@ -13,13 +13,17 @@ import com.aliyun.kotlin.sdk.service.oss2.signer.SignerV1
 import com.aliyun.kotlin.sdk.service.oss2.signer.SignerV4
 import com.aliyun.kotlin.sdk.service.oss2.types.AddressStyleType
 import com.aliyun.kotlin.sdk.service.oss2.types.AuthMethodType
-import com.aliyun.kotlin.sdk.service.oss2.utils.VersionInfoUtils
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+
+// Asserts the shape rather than the value, so the check survives version bumps while still
+// failing if the generated SDK_VERSION regresses to a placeholder. The trailing slash closes the
+// version segment, without it a suffixed version such as "0.1.0-dev" would still match.
+internal val SDK_USER_AGENT_REGEX = Regex("""alibabacloud-kotlin-sdk-v2/\d+\.\d+\.\d+/""")
 
 class ClientImplTest {
     @Test
@@ -470,7 +474,7 @@ class ClientImplTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
+            assertContains(client.innerOptions.userAgent, SDK_USER_AGENT_REGEX)
         }
 
         // set MaxAttempts in configuration
@@ -481,7 +485,7 @@ class ClientImplTest {
         }
 
         ClientImpl(config).use { client ->
-            assertContains(client.innerOptions.userAgent, "alibabacloud-kotlin-sdk-v2/${VersionInfoUtils.version}")
+            assertContains(client.innerOptions.userAgent, SDK_USER_AGENT_REGEX)
             assertContains(client.innerOptions.userAgent, "/my-agent")
         }
     }
