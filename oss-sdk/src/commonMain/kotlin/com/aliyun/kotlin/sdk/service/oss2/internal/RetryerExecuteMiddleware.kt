@@ -35,7 +35,7 @@ internal class RetryerExecuteMiddleware(
      * @param request The request message object [RequestMessage]
      * @param context The execution context object [ExecuteContext]
      * @return Returns the successfully processed response message
-     * @throws RuntimeException If maximum attempts are reached or the error is not retryable
+     * @throws RuntimeException If maximum attempts are reached or the error is not retriable
      */
     override suspend fun execute(request: RequestMessage, context: ExecuteContext): ResponseMessage {
         val attempts = context.retryMaxAttempts
@@ -70,11 +70,12 @@ internal class RetryerExecuteMiddleware(
 
             // delay
             val delayMs = retryer.retryDelay(retries + 1, error).inWholeMilliseconds
-            logger?.info { "Should retry. Current retries: $retries, delay: $delayMs, exception: $error." }
+            logger?.info { "Should retry. Attempt: ${retries + 1}, delay: $delayMs, exception: ${error?.message}." }
             try {
                 delay(delayMs)
             } catch (e: CancellationException) {
                 // Ignore
+                logger?.info { "Retry cancelled due to coroutine cancellation." }
                 error = e
                 break
             }
@@ -95,6 +96,7 @@ internal class RetryerExecuteMiddleware(
         context.requestBodyObserver?.forEach { observer ->
             observer.error(error)
         }
+        logger?.error { "Request failed after ${retries + 1} attempt(s), last error: ${error.message}" }
         throw error
     }
 }

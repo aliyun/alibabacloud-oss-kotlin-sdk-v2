@@ -97,6 +97,17 @@ internal class ClientImpl(
 
         this.innerOptions = innerOpts
 
+        this.innerOptions.logger?.info {
+            buildString {
+                append("Client initialized: ")
+                append("endpoint=${innerOpts.scheme}://${innerOpts.host}, ")
+                append("region=${options.region}, ")
+                append("signer=${options.signer::class.simpleName}, ")
+                append("addressStyle=${innerOpts.addressStyle}, ")
+                append("userAgent=${innerOpts.userAgent}")
+            }
+        }
+
         // build execute stack
         val transport = TransportExecuteMiddleware(opts.httpClient, config.logger)
         val stack = ExecuteStack(transport)
@@ -104,7 +115,7 @@ internal class ClientImpl(
         stack.push(
             { x ->
                 val retryHandler: RetryHandler? = if (featureFlags.contains(FeatureFlagsType.CORRECT_CLOCK_SKEW)) {
-                    FixTimeRetryHandler()
+                    FixTimeRetryHandler(config.logger)
                 } else {
                     null
                 }
@@ -131,7 +142,7 @@ internal class ClientImpl(
         )
 
         stack.push(
-            { x -> ResponseCheckerExecuteMiddleware(x) },
+            { x -> ResponseCheckerExecuteMiddleware(x, config.logger) },
             "ResponseChecker"
         )
 
@@ -163,9 +174,16 @@ internal class ClientImpl(
         // build execute context;
         val (request, ctx) = buildRequestContext(input, opts)
 
+        this.innerOptions.logger?.debug {
+            "Executing operation: ${input.opName}, method=${input.method}, bucket=${input.bucket}, key=${input.key}, url=${request.url}"
+        }
+
         // execute
         try {
             val response = this.executeStack.execute(request, ctx)
+            this.innerOptions.logger?.debug {
+                "Operation succeeded: ${input.opName}, statusCode=${response.statusCode}"
+            }
             return OperationOutput {
                 this.input = input
                 this.statusCode = response.statusCode
@@ -174,6 +192,9 @@ internal class ClientImpl(
                 this.body = response.body
             }
         } catch (e: Exception) {
+            this.innerOptions.logger?.error {
+                "Operation failed: ${input.opName}, error=${e.message}"
+            }
             throw OperationException(input.opName, e)
         }
     }
@@ -192,58 +213,73 @@ internal class ClientImpl(
         // build execute context;
         var (request, ctx) = buildRequestContext(input, opts)
 
+        this.innerOptions.logger?.debug {
+            "Presigning operation: ${input.opName}, method=${input.method}, bucket=${input.bucket}, key=${input.key}"
+        }
+
         // build execute context;
         val provider = this.options.credentialsProvider
         val result = PresignInnerResult()
         val signingContext = requireNotNull(ctx.signingContext) { "signingContext is null." }
 
-        if (provider !is AnonymousCredentialsProvider) {
-            val cred = provider.getCredentials()
-            val signer = this.options.signer
+        try {
+            if (provider !is AnonymousCredentialsProvider) {
+                val cred = provider.getCredentials()
+                val signer = this.options.signer
 
-            if (!cred.hasKeys()) {
-                throw CredentialsException("Credentials is null or empty.")
-            }
-            signingContext.credentials = cred
-            signingContext.request = request
-            signingContext.isAuthMethodQuery = true
-            signer.sign(signingContext)
-
-            request = requireNotNull(signingContext.request) { "signingContext.request is null." }
-
-            // save to result
-            signingContext.expirationInEpoch?.let {
-                result.expiration = Instant.fromEpochSeconds(it)
-            }
-
-            // signed headers
-            // content-type, content-md5, x-oss- and additionalHeaders in sign v4
-            val expect: MutableList<String?> = ArrayList()
-            expect.add("content-type")
-            expect.add("content-md5")
-            if (signer is SignerV4) {
-                // check
-                val nowTo7Days = Clock.System.now().plus(7.days)
-                if (result.expiration != null && result.expiration!! > nowTo7Days) {
-                    throw PresignExpirationException()
+                if (!cred.hasKeys()) {
+                    throw CredentialsException("Credentials is null or empty.")
                 }
-                signingContext.additionalHeaders?.forEach { x -> expect.add(x.lowercase()) }
+                signingContext.credentials = cred
+                signingContext.request = request
+                signingContext.isAuthMethodQuery = true
+                signer.sign(signingContext)
+
+                request = requireNotNull(signingContext.request) { "signingContext.request is null." }
+
+                // save to result
+                signingContext.expirationInEpoch?.let {
+                    result.expiration = Instant.fromEpochSeconds(it)
+                }
+
+                // signed headers
+                // content-type, content-md5, x-oss- and additionalHeaders in sign v4
+                val expect: MutableList<String?> = ArrayList()
+                expect.add("content-type")
+                expect.add("content-md5")
+                if (signer is SignerV4) {
+                    // check
+                    val nowTo7Days = Clock.System.now().plus(7.days)
+                    if (result.expiration != null && result.expiration!! > nowTo7Days) {
+                        throw PresignExpirationException()
+                    }
+                    signingContext.additionalHeaders?.forEach { x -> expect.add(x.lowercase()) }
+                }
+
+                // signed headers
+                val signedHeaders = MapUtils.headersMap()
+                request.headers.forEach { (k, v) ->
+                    val low = k.lowercase()
+                    if (expect.contains(low) || low.startsWith("x-oss-")) {
+                        signedHeaders.put(k, v)
+                    }
+                }
+                result.signedHeaders = signedHeaders
+            }
+            result.url = request.url
+            result.method = request.method
+
+            this.innerOptions.logger?.debug {
+                "Presign succeeded: ${input.opName}, url=${result.url}, expiration=${result.expiration}"
             }
 
-            // signed headers
-            val signedHeaders = MapUtils.headersMap()
-            request.headers.forEach { (k, v) ->
-                val low = k.lowercase()
-                if (expect.contains(low) || low.startsWith("x-oss-")) {
-                    signedHeaders.put(k, v)
-                }
+            return result
+        } catch (e: Exception) {
+            this.innerOptions.logger?.error {
+                "Presign failed: ${input.opName}, error=${e.message}"
             }
-            result.signedHeaders = signedHeaders
+            throw e
         }
-        result.url = request.url
-        result.method = request.method
-
-        return result
     }
 
     val featureFlags: FeatureFlagsType

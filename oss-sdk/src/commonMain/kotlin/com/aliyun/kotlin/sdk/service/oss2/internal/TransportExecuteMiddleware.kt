@@ -42,7 +42,12 @@ internal class TransportExecuteMiddleware(
                 append("request end:---------------------")
             }
         }
-        val response = this.httpClient.execute(request, opt)
+        val response = try {
+            this.httpClient.execute(request, opt)
+        } catch (e: Exception) {
+            logger?.error { "HTTP transport error: ${e.message}, request=${request.method} ${request.url}" }
+            throw e
+        }
         logger?.info {
             buildString {
                 append("response:------------------------\n")
