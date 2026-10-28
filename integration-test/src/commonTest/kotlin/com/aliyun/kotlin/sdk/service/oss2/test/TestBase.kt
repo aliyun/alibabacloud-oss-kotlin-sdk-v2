@@ -20,8 +20,11 @@ import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectVersionsPaginator
 import com.aliyun.kotlin.sdk.service.oss2.paginator.listObjectsV2Paginator
 import com.aliyun.kotlin.sdk.service.oss2.types.ByteStream
 import com.aliyun.kotlin.sdk.service.oss2.types.toByteArray
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
@@ -97,7 +100,10 @@ open class TestBase {
         return "$OBJECT_NAME_PREFIX$ticks-$value"
     }
 
-    fun waitForCacheExpiration(durationSeconds: Int) {
+    suspend fun waitForCacheExpiration(durationSeconds: Int) {
+        withContext(Dispatchers.Default) {
+            delay(durationSeconds * 1000L)
+        }
     }
 
     suspend fun cleanBuckets(prefix: String) {
@@ -117,7 +123,7 @@ open class TestBase {
         return "$BUCKET_NAME_PREFIX$ticks-$value"
     }
 
-    fun createBucket(bucket: String) {
+    suspend fun createBucket(bucket: String) {
         waitForCacheExpiration(1)
     }
 

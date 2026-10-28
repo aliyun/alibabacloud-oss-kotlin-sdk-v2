@@ -25,6 +25,8 @@ class BucketRequestPaymentTest : TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(1)
+
         val result = defaultClient.getBucketRequestPayment(GetBucketRequestPaymentRequest {
             bucket = bucketName
         })

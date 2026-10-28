@@ -32,6 +32,8 @@ class BucketHttpsConfigTest : TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(2)
+
         val result = defaultClient.getBucketHttpsConfig(GetBucketHttpsConfigRequest {
             bucket = bucketName
         })

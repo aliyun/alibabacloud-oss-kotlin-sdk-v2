@@ -10,11 +10,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.GetStyleRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.ListStyleRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutStyleRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.Style
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -24,24 +19,8 @@ import kotlin.test.assertTrue
 
 class BucketStyleTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetStyleSuccess() = runTest {
+    fun testPutAndGetStyleSuccess() = bucketTest { bucketName ->
         val putResult = defaultClient.putStyle(PutStyleRequest {
             bucket = bucketName
             styleName = "imageStyle"
@@ -50,6 +29,8 @@ class BucketStyleTest: TestBase() {
             }
         })
         assertEquals(200, putResult.statusCode)
+
+        waitForCacheExpiration(1)
 
         val getResult = defaultClient.getStyle(GetStyleRequest {
             bucket = bucketName
@@ -63,7 +44,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testPutStyleWithException() = runTest {
+    fun testPutStyleWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putStyle(PutStyleRequest {})
         }
@@ -97,7 +78,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testGetStyleWithException() = runTest {
+    fun testGetStyleWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getStyle(GetStyleRequest {})
         }
@@ -122,7 +103,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testListStyleSuccess() = runTest {
+    fun testListStyleSuccess() = bucketTest { bucketName ->
         defaultClient.putStyle(PutStyleRequest {
             bucket = bucketName
             styleName = "imageStyle1"
@@ -137,6 +118,8 @@ class BucketStyleTest: TestBase() {
                 content = "image/resize,p_50"
             }
         })
+
+        waitForCacheExpiration(3)
 
         val result = defaultClient.listStyle(ListStyleRequest {
             bucket = bucketName
@@ -155,7 +138,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testListStyleWithException() = runTest {
+    fun testListStyleWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.listStyle(ListStyleRequest {})
         }
@@ -172,7 +155,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testDeleteStyleSuccess() = runTest {
+    fun testDeleteStyleSuccess() = bucketTest { bucketName ->
         defaultClient.putStyle(PutStyleRequest {
             bucket = bucketName
             styleName = "imageStyle"
@@ -189,7 +172,7 @@ class BucketStyleTest: TestBase() {
     }
 
     @Test
-    fun testDeleteStyleWithException() = runTest {
+    fun testDeleteStyleWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.deleteStyle(DeleteStyleRequest {})
         }

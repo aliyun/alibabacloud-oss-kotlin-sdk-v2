@@ -45,6 +45,8 @@ class BucketRefererTest : TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(2)
+
         val result = defaultClient.getBucketReferer(GetBucketRefererRequest {
             bucket = bucketName
         })

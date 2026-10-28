@@ -17,9 +17,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.OptionalFields
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketInventoryRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
 import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -29,24 +26,8 @@ import kotlin.test.assertTrue
 
 class BucketInventoryTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketInventory() = runTest {
+    fun testPutAndGetBucketInventory() = bucketTest { bucketName ->
         val bucket = randomBucketName()
         defaultClient.putBucket(PutBucketRequest {
             this.bucket = bucket
@@ -95,6 +76,8 @@ class BucketInventoryTest: TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(1)
+
         val getResult = defaultClient.getBucketInventory(GetBucketInventoryRequest {
             this.bucket = bucketName
             inventoryId = "inventoryId"
@@ -108,7 +91,7 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testPutBucketInventoryWithException() = runTest {
+    fun testPutBucketInventoryWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketInventory(PutBucketInventoryRequest {})
         }
@@ -142,17 +125,17 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketInventoryWithException() = runTest {
+    fun testGetBucketInventoryWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketInventory(GetBucketInventoryRequest {})
         }
         assertEquals(exception.message, "request.bucket is required")
 
         exception = assertFailsWith<IllegalArgumentException> {
-        defaultClient.getBucketInventory(GetBucketInventoryRequest {
-            bucket = bucketName
-        })
-    }
+            defaultClient.getBucketInventory(GetBucketInventoryRequest {
+                bucket = bucketName
+            })
+        }
         assertEquals(exception.message, "request.inventoryId is required")
 
         exception = assertFails {
@@ -167,7 +150,7 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testListBucketInventory() = runTest {
+    fun testListBucketInventory() = bucketTest { bucketName ->
         val bucket = randomBucketName()
         defaultClient.putBucket(PutBucketRequest {
             this.bucket = bucket
@@ -216,6 +199,8 @@ class BucketInventoryTest: TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(1)
+
         val listResult = defaultClient.listBucketInventory(ListBucketInventoryRequest {
             this.bucket = bucketName
         })
@@ -231,7 +216,7 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testListBucketInventoryWithException() = runTest {
+    fun testListBucketInventoryWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.listBucketInventory(ListBucketInventoryRequest {})
         }
@@ -248,7 +233,7 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testDeleteBucketInventory() = runTest {
+    fun testDeleteBucketInventory() = bucketTest { bucketName ->
         val bucket = randomBucketName()
         defaultClient.putBucket(PutBucketRequest {
             this.bucket = bucket
@@ -309,7 +294,7 @@ class BucketInventoryTest: TestBase() {
     }
 
     @Test
-    fun testDeleteBucketInventoryWithException() = runTest {
+    fun testDeleteBucketInventoryWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.deleteBucketInventory(DeleteBucketInventoryRequest {})
         }

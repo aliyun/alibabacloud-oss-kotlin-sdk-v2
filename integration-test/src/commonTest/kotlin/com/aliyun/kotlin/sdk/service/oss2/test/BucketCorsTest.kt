@@ -35,6 +35,9 @@ class BucketCorsTest: TestBase() {
             bucket = bucketName
             this.corsConfiguration = corsConfiguration
         })
+
+        waitForCacheExpiration(1)
+
         val result = defaultClient.getBucketCors(GetBucketCorsRequest {
             bucket = bucketName
         })

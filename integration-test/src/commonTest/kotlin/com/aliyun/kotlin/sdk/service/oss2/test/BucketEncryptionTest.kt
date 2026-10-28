@@ -30,6 +30,8 @@ class BucketEncryptionTest : TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(1)
+
         val result = defaultClient.getBucketEncryption(GetBucketEncryptionRequest {
             bucket = bucketName
         })

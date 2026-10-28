@@ -27,6 +27,9 @@ class BucketVersioningTest: TestBase() {
                 status = "Enabled"
             }
         })
+
+        waitForCacheExpiration(1)
+
         val result = defaultClient.getBucketVersioning(GetBucketVersioningRequest {
             this.bucket = bucket
         })

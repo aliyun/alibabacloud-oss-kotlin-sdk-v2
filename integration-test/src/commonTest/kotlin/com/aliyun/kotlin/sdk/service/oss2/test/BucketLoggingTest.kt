@@ -18,11 +18,6 @@ import com.aliyun.kotlin.sdk.service.oss2.extension.models.ParamSet
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutBucketLoggingRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.PutUserDefinedLogFieldsConfigRequest
 import com.aliyun.kotlin.sdk.service.oss2.extension.models.UserDefinedLogFieldsConfiguration
-import com.aliyun.kotlin.sdk.service.oss2.models.DeleteBucketRequest
-import com.aliyun.kotlin.sdk.service.oss2.models.PutBucketRequest
-import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -31,24 +26,8 @@ import kotlin.test.assertTrue
 
 class BucketLoggingTest: TestBase() {
 
-    val bucketName: String = randomBucketName()
-
-    @BeforeTest
-    fun putBucket() = runTest {
-        defaultClient.putBucket(PutBucketRequest {
-            bucket = bucketName
-        })
-    }
-
-    @AfterTest
-    fun cleanAndDeleteBucket() = runTest {
-        defaultClient.deleteBucket(DeleteBucketRequest {
-            bucket = bucketName
-        })
-    }
-
     @Test
-    fun testPutAndGetBucketLogging() = runTest {
+    fun testPutAndGetBucketLogging() = bucketTest { bucketName ->
         val bucketLoggingStatus = BucketLoggingStatus {
             loggingEnabled = LoggingEnabled {
                 targetBucket = bucketName
@@ -61,6 +40,8 @@ class BucketLoggingTest: TestBase() {
         })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(1)
+
         val getResult = defaultClient.getBucketLogging(GetBucketLoggingRequest {
             bucket = bucketName
         })
@@ -69,7 +50,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testPutBucketLoggingWithException() = runTest {
+    fun testPutBucketLoggingWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putBucketLogging(PutBucketLoggingRequest {})
         }
@@ -94,7 +75,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testGetBucketLoggingWithException() = runTest {
+    fun testGetBucketLoggingWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getBucketLogging(GetBucketLoggingRequest {})
         }
@@ -111,7 +92,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testDeleteBucketLogging() = runTest {
+    fun testDeleteBucketLogging() = bucketTest { bucketName ->
         val bucketLoggingStatus = BucketLoggingStatus {
             loggingEnabled = LoggingEnabled {
                 targetBucket = bucketName
@@ -131,7 +112,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testDeleteBucketLoggingWithException() = runTest {
+    fun testDeleteBucketLoggingWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.deleteBucketLogging(DeleteBucketLoggingRequest {})
         }
@@ -148,7 +129,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testPutAndGetUserDefinedLogFieldsConfig() = runTest {
+    fun testPutAndGetUserDefinedLogFieldsConfig() = bucketTest { bucketName ->
         val configuration = UserDefinedLogFieldsConfiguration {
             headerSet = HeaderSet {
                 headers = listOf(
@@ -171,6 +152,8 @@ class BucketLoggingTest: TestBase() {
             })
         assertEquals(200, putResult.statusCode)
 
+        waitForCacheExpiration(2)
+
         val getResult = defaultClient.getUserDefinedLogFieldsConfig(
             GetUserDefinedLogFieldsConfigRequest {
                 bucket = bucketName
@@ -180,7 +163,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testPutUserDefinedLogFieldsConfigWithException() = runTest {
+    fun testPutUserDefinedLogFieldsConfigWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.putUserDefinedLogFieldsConfig(PutUserDefinedLogFieldsConfigRequest {})
         }
@@ -205,7 +188,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testGetUserDefinedLogFieldsConfigWithException() = runTest {
+    fun testGetUserDefinedLogFieldsConfigWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.getUserDefinedLogFieldsConfig(GetUserDefinedLogFieldsConfigRequest {})
         }
@@ -222,7 +205,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testDeleteUserDefinedLogFieldsConfig() = runTest {
+    fun testDeleteUserDefinedLogFieldsConfig() = bucketTest { bucketName ->
         val configuration = UserDefinedLogFieldsConfiguration {
             headerSet = HeaderSet {
                 headers = listOf(
@@ -252,7 +235,7 @@ class BucketLoggingTest: TestBase() {
     }
 
     @Test
-    fun testDeleteUserDefinedLogFieldsConfigWithException() = runTest {
+    fun testDeleteUserDefinedLogFieldsConfigWithException() = bucketTest { bucketName ->
         var exception: Throwable = assertFailsWith<IllegalArgumentException> {
             defaultClient.deleteUserDefinedLogFieldsConfig(DeleteUserDefinedLogFieldsConfigRequest {})
         }
